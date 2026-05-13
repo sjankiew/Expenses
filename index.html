@@ -44,11 +44,54 @@
         }
         .numpad-btn:active { background-color: #e5e7eb; transform: scale(0.95); }
         .numpad-action { background-color: var(--color-primary); color: white; }
+
+        /* ✨ Modern Select Input Styling ✨ */
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        /* Mobile Drawer Transition */
+        .mobile-drawer { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex overflow-hidden">
+<body class="text-gray-800 h-screen flex overflow-hidden bg-gray-50">
 
-    <!-- Sidebar (Desktop & Mobile) -->
+    <!-- 📱 Mobile Navigation Drawer & Overlay -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity" onclick="toggleMobileMenu()"></div>
+    <aside id="mobile-menu-drawer" class="mobile-drawer fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 flex flex-col shadow-lg md:hidden transform -translate-x-full">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-custom-primary rounded-lg text-white">
+                    <i data-lucide="wallet"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">FinanceApp</h1>
+            </div>
+            <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-full hover:bg-gray-100">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto font-sarabun">
+            <button onclick="navigate('record'); toggleMobileMenu()" id="mob-nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold transition-colors">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>บันทึกรายการ</span>
+            </button>
+            <button onclick="navigate('dashboard'); toggleMobileMenu()" id="mob-nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>แดชบอร์ด</span>
+            </button>
+            <button onclick="navigate('settings'); toggleMobileMenu()" id="mob-nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span>จัดการหมวดหมู่</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Sidebar (Desktop) -->
     <aside class="bg-white w-64 border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col h-full shadow-sm z-20">
         <div class="p-6 border-b border-gray-100 flex items-center space-x-3">
             <div class="p-2 bg-custom-primary rounded-lg text-white">
@@ -56,7 +99,7 @@
             </div>
             <h1 class="text-xl font-bold tracking-tight text-gray-800">FinanceApp</h1>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
+        <nav class="flex-1 p-4 space-y-2 font-sarabun">
             <button onclick="navigate('record')" id="nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold transition-colors">
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 <span>บันทึกรายการ</span>
@@ -81,7 +124,8 @@
                 <i data-lucide="wallet" class="text-custom-primary"></i>
                 <span>FinanceApp</span>
             </div>
-            <button class="text-gray-500" onclick="alert('เมนูบนมือถือ (คุณสามารถเพิ่ม Drawer UI ได้ที่นี่)')">
+            <!-- 📱 Toggle Button for Mobile Menu -->
+            <button class="text-gray-500 focus:outline-none p-1 rounded-full hover:bg-gray-100" onclick="toggleMobileMenu()">
                 <i data-lucide="menu"></i>
             </button>
         </header>
@@ -103,13 +147,14 @@
                         <!-- Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">วันที่</label>
-                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800">
+                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
                         </div>
 
                         <!-- Payment Method (Only Expense) -->
                         <div id="paymentMethodContainer">
                             <label class="block text-sm font-medium text-gray-600 mb-1">ช่องทางชำระเงิน</label>
-                            <select id="inputPayment" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 appearance-none">
+                            <!-- ✨ Modern Select -->
+                            <select id="inputPayment" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
                                 <option value="Cash" selected>เงินสด</option>
                                 <option value="Credit Card">บัตรเครดิต</option>
                             </select>
@@ -118,7 +163,8 @@
                         <!-- Category -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">หมวดหมู่</label>
-                            <select id="inputCategory" onchange="checkCategory()" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 appearance-none">
+                            <!-- ✨ Modern Select -->
+                            <select id="inputCategory" onchange="checkCategory()" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
                                 <option value="" disabled selected>โหลดข้อมูล...</option>
                             </select>
                         </div>
@@ -126,23 +172,23 @@
                         <!-- Standard Amount Input -->
                         <div id="standardAmountContainer">
                             <label class="block text-sm font-medium text-gray-600 mb-1">ยอดเงิน (บาท)</label>
-                            <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-2xl font-bold text-gray-800 text-right">
+                            <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-2xl font-bold text-gray-800 text-right font-sarabun">
                         </div>
 
                         <!-- 💡 Special Feature: Food Multi-Amount -->
                         <div id="foodAmountContainer" class="hidden border border-gray-200 rounded-xl p-4 bg-gray-50">
                             <div class="flex justify-between items-center mb-3">
                                 <label class="text-sm font-semibold text-gray-600 flex items-center"><i data-lucide="utensils" class="w-4 h-4 mr-1"></i> แจกแจงยอดค่าอาหาร</label>
-                                <div class="text-xl font-bold text-custom-primary">รวม: <span id="foodTotalDisplay">0</span></div>
+                                <div class="text-xl font-bold text-custom-primary font-sarabun">รวม: <span id="foodTotalDisplay">0</span></div>
                             </div>
                             
                             <!-- Input List -->
-                            <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-2 no-scrollbar">
+                            <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-2 no-scrollbar font-sarabun">
                                 <input type="number" readonly class="food-input w-24 flex-shrink-0 p-3 text-center rounded-lg border-2 border-custom-primary bg-white font-bold" value="">
                             </div>
 
                             <!-- Custom Numpad -->
-                            <div class="grid grid-cols-4 gap-2 mt-4">
+                            <div class="grid grid-cols-4 gap-2 mt-4 font-sarabun">
                                 <button onclick="numpadPress('7')" class="numpad-btn">7</button>
                                 <button onclick="numpadPress('8')" class="numpad-btn">8</button>
                                 <button onclick="numpadPress('9')" class="numpad-btn">9</button>
@@ -165,13 +211,13 @@
                         <!-- Note -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">หมายเหตุ</label>
-                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800" placeholder="เพิ่มรายละเอียด..."></textarea>
+                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun" placeholder="เพิ่มรายละเอียด..."></textarea>
                         </div>
 
                         <!-- Image Upload -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">แนบสลิป/รูปภาพ</label>
-                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-custom-primary file:text-white hover:file:bg-[#58b6bc] transition-all">
+                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-custom-primary file:text-white hover:file:bg-[#58b6bc] transition-all font-sarabun">
                         </div>
                     </div>
                 </div>
@@ -181,7 +227,8 @@
             <section id="view-dashboard" class="view-section max-w-5xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">ภาพรวมบัญชี</h2>
-                    <select id="dashFilter" onchange="renderDashboard()" class="p-2 border border-gray-200 rounded-lg text-sm bg-white">
+                    <!-- ✨ Modern Select -->
+                    <select id="dashFilter" onchange="renderDashboard()" class="custom-select p-2 pr-8 border border-gray-200 rounded-lg text-sm bg-white font-sarabun focus:ring-2 focus:ring-custom-primary/50 focus:border-custom-primary outline-none">
                         <option value="daily">รายวัน</option>
                         <option value="monthly">รายเดือน</option>
                         <option value="yearly">รายปี</option>
@@ -189,7 +236,7 @@
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 font-sarabun">
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                         <div class="text-sm text-gray-500 mb-1">รายรับรวม</div>
                         <div class="text-2xl font-bold text-green-500" id="dashIncome">฿0.00</div>
@@ -206,7 +253,7 @@
 
                 <!-- Categories Breakdown -->
                 <h3 class="text-lg font-bold text-gray-800 mb-3">สรุปรายจ่ายตามหมวดหมู่</h3>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4" id="dashCategories">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 font-sarabun" id="dashCategories">
                     <!-- Dynamic Content -->
                     <div class="text-center text-gray-400 py-4">กำลังโหลดข้อมูล...</div>
                 </div>
@@ -217,18 +264,19 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">จัดการหมวดหมู่</h2>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <h3 class="text-lg font-semibold mb-4">เพิ่มหมวดหมู่ใหม่</h3>
-                    <div class="flex space-x-3">
-                        <select id="newCatType" class="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div class="flex space-x-3 font-sarabun">
+                        <!-- ✨ Modern Select -->
+                        <select id="newCatType" class="custom-select p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
                             <option value="Expense">รายจ่าย</option>
                             <option value="Income">รายรับ</option>
                         </select>
-                        <input type="text" id="newCatName" placeholder="ชื่อหมวดหมู่..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-5 py-3 rounded-xl font-bold hover:bg-[#58b6bc] transition-colors">เพิ่ม</button>
+                        <input type="text" id="newCatName" placeholder="ชื่อหมวดหมู่..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
+                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-5 py-3 rounded-xl font-bold hover:bg-[#58b6bc] transition-colors whitespace-nowrap">เพิ่ม</button>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold mb-4">รายการหมวดหมู่</h3>
-                    <ul id="settingCatList" class="space-y-2">
+                    <ul id="settingCatList" class="space-y-2 font-sarabun">
                         <!-- Dynamic Content -->
                     </ul>
                 </div>
@@ -238,7 +286,7 @@
 
         <!-- Sticky Footer for Record Mode -->
         <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 z-30 transition-transform transform translate-y-0">
-            <button onclick="submitData()" id="btnSave" class="w-full max-w-2xl mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center">
+            <button onclick="submitData()" id="btnSave" class="w-full max-w-2xl mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center font-sarabun">
                 <i data-lucide="save" class="mr-2"></i> บันทึกข้อมูล
             </button>
         </div>
@@ -246,7 +294,7 @@
     </main>
 
     <!-- Overlay Loader -->
-    <div id="loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+    <div id="loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden font-sarabun">
         <i data-lucide="loader-2" class="animate-spin w-12 h-12 text-custom-primary mb-4"></i>
         <span class="font-semibold text-gray-600" id="loaderText">กำลังประมวลผล...</span>
     </div>
@@ -271,6 +319,29 @@
         document.getElementById('inputDate').valueAsDate = new Date();
 
         // ==========================================
+        // 📱 MOBILE MENU LOGIC
+        // ==========================================
+        let isMobileMenuOpen = false;
+
+        function toggleMobileMenu() {
+            isMobileMenuOpen = !isMobileMenuOpen;
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const drawer = document.getElementById('mobile-menu-drawer');
+
+            if (isMobileMenuOpen) {
+                overlay.classList.remove('hidden');
+                // Small delay to allow display:block to take effect before opacity transition
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                drawer.classList.remove('-translate-x-full');
+            } else {
+                overlay.classList.add('opacity-0');
+                drawer.classList.add('-translate-x-full');
+                // Wait for transition to finish before hiding
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // ==========================================
         // 🔄 SPA NAVIGATION LOGIC
         // ==========================================
         function navigate(viewId) {
@@ -280,15 +351,23 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
             
-            // Toggle Nav Active state
+            // Toggle Nav Active state (for both desktop and mobile)
             document.querySelectorAll('.nav-btn').forEach(el => {
                 el.classList.remove('bg-[#E5EEE4]/50', 'text-custom-primary');
                 el.classList.add('text-gray-500');
             });
-            const activeNav = document.getElementById(`nav-${viewId}`);
-            if(activeNav) {
-                activeNav.classList.remove('text-gray-500');
-                activeNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
+
+            // Update both desktop and mobile nav items
+            const activeDesktopNav = document.getElementById(`nav-${viewId}`);
+            const activeMobileNav = document.getElementById(`mob-nav-${viewId}`);
+            
+            if(activeDesktopNav) {
+                activeDesktopNav.classList.remove('text-gray-500');
+                activeDesktopNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
+            }
+            if(activeMobileNav) {
+                activeMobileNav.classList.remove('text-gray-500');
+                activeMobileNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
             }
 
             // Sticky Footer Visibility
@@ -335,6 +414,7 @@
                         {Name: 'รถ', Type: 'Expense'}, {Name: 'เงินเดือน', Type: 'Income'}
                     ];
                     populateCategories();
+                    renderCategorySettings(); // Render settings list on load too
                     return;
                 }
 
@@ -387,7 +467,7 @@
                 const borderClass = isActive ? 'border-custom-primary' : 'border-gray-200';
                 const bgClass = isActive ? 'bg-white' : 'bg-gray-100';
                 
-                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-24 flex-shrink-0 p-3 text-center rounded-lg border-2 ${borderClass} ${bgClass} font-bold text-gray-800 cursor-pointer" value="${amt}">`;
+                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-24 flex-shrink-0 p-3 text-center rounded-lg border-2 ${borderClass} ${bgClass} font-bold text-gray-800 cursor-pointer outline-none" value="${amt}">`;
                 
                 total += parseFloat(amt || 0);
             });
@@ -615,6 +695,8 @@
 
         // Initial Boot
         fetchCategories();
+        // Initialize Icons again just in case dynamic content needs it
+        lucide.createIcons();
 
     </script>
 </body>
