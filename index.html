@@ -3,609 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Expense Tracker</title>
+    <title>Enterprise Expense Tracker - Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Modern Enterprise Typography & Utilities */
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-        
-        :root {
-            --color-primary: #6FD1D7;
-            --color-primary-dark: #58b6bc;
-            --color-bg: #E5EEE4;
-        }
-
-        body {
-            /* Fallback to Sarabun for Thai support, mimicking Aptos clean look */
-            font-family: 'Aptos', 'Sarabun', sans-serif; 
-            background-color: var(--color-bg);
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        :root { --color-primary: #6FD1D7; --color-primary-dark: #58b6bc; --color-bg: #E5EEE4; }
+        body { font-family: 'Aptos', 'Sarabun', sans-serif; background-color: var(--color-bg); -webkit-tap-highlight-color: transparent; }
         .bg-custom-primary { background-color: var(--color-primary); }
         .text-custom-primary { color: var(--color-primary-dark); }
-        .border-custom-primary { border-color: var(--color-primary); }
         .focus-ring-primary:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(111, 209, 215, 0.3); }
-
-        /* Hide scrollbar for clean UI */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Smooth SPA transition */
-        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section { display: none; animation: fadeIn 0.2s ease-in-out; }
         .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Numpad Styles */
-        .numpad-btn {
-            background-color: #f3f4f6; border-radius: 0.5rem; padding: 1rem;
-            font-size: 1.25rem; font-weight: 600; color: #374151; transition: all 0.1s;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .numpad-btn { background-color: #f3f4f6; border-radius: 0.5rem; padding: 1rem; font-size: 1.25rem; font-weight: 600; color: #374151; transition: all 0.1s; border: 1px solid #e5e7eb; }
         .numpad-btn:active { background-color: #e5e7eb; transform: scale(0.95); }
         .numpad-action { background-color: var(--color-primary); color: white; }
-
-        /* ✨ Modern Select Input Styling ✨ */
-        .custom-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.75rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-        }
-
-        /* Mobile Drawer Transition */
+        .custom-select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
         .mobile-drawer { transition: transform 0.3s ease-in-out; }
+        /* Toast Notification */
+        #toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 100px; font-size: 14px; }
+        #toast.show { visibility: visible; animation: fadeinout 3s; }
+        @keyframes fadeinout { 0% { bottom: 0; opacity: 0; } 15% { bottom: 100px; opacity: 1; } 85% { bottom: 100px; opacity: 1; } 100% { bottom: 0; opacity: 0; } }
     </style>
 </head>
 <body class="text-gray-800 h-[100dvh] flex overflow-hidden bg-gray-50">
 
-    <!-- 📱 Mobile Navigation Drawer & Overlay -->
-    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleMobileMenu()"></div>
+    <!-- 📱 Mobile Menu -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity" onclick="toggleMobileMenu()"></div>
     <aside id="mobile-menu-drawer" class="mobile-drawer fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 flex flex-col shadow-lg md:hidden transform -translate-x-full">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-custom-primary rounded-lg text-white">
-                    <i data-lucide="wallet"></i>
-                </div>
-                <h1 class="text-xl font-bold tracking-tight text-gray-800">FinanceApp</h1>
-            </div>
-            <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-full hover:bg-gray-100">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-        </div>
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto font-sarabun">
-            <button onclick="navigate('record'); toggleMobileMenu()" id="mob-nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold transition-colors">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                <span>บันทึกรายการ</span>
-            </button>
-            <button onclick="navigate('dashboard'); toggleMobileMenu()" id="mob-nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span>แดชบอร์ด</span>
-            </button>
-            <button onclick="navigate('settings'); toggleMobileMenu()" id="mob-nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>จัดการหมวดหมู่</span>
-            </button>
-        </nav>
-    </aside>
-
-    <!-- Sidebar (Desktop) -->
-    <aside class="bg-white w-64 border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col h-full shadow-sm z-20">
-        <div class="p-6 border-b border-gray-100 flex items-center space-x-3">
-            <div class="p-2 bg-custom-primary rounded-lg text-white">
-                <i data-lucide="wallet"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight text-gray-800">FinanceApp</h1>
+            <div class="flex items-center space-x-3"><div class="p-2 bg-custom-primary rounded-lg text-white"><i data-lucide="wallet"></i></div><h1 class="text-xl font-bold">FinanceApp</h1></div>
+            <button onclick="toggleMobileMenu()" class="text-gray-500 p-1"><i data-lucide="x"></i></button>
         </div>
         <nav class="flex-1 p-4 space-y-2 font-sarabun">
-            <button onclick="navigate('record')" id="nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold transition-colors">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                <span>บันทึกรายการ</span>
+            <button onclick="navigate('record'); toggleMobileMenu()" id="mob-nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold">
+                <i data-lucide="plus-circle"></i><span>บันทึกรายการ</span>
             </button>
-            <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span>แดชบอร์ด</span>
+            <button onclick="navigate('dashboard'); toggleMobileMenu()" id="mob-nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 font-medium">
+                <i data-lucide="layout-dashboard"></i><span>แดชบอร์ด</span>
             </button>
-            <button onclick="navigate('settings')" id="nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 font-medium transition-colors">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>จัดการหมวดหมู่</span>
+            <button onclick="navigate('settings'); toggleMobileMenu()" id="mob-nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 font-medium">
+                <i data-lucide="settings"></i><span>จัดการหมวดหมู่</span>
             </button>
         </nav>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-full relative w-full overflow-hidden">
-        
-        <!-- Mobile Header -->
-        <header class="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-20 shadow-sm">
-            <div class="flex items-center space-x-2 text-gray-800 font-bold">
-                <i data-lucide="wallet" class="text-custom-primary"></i>
-                <span>FinanceApp</span>
-            </div>
-            <button class="text-gray-500 focus:outline-none p-1 rounded-full hover:bg-gray-100" onclick="toggleMobileMenu()">
-                <i data-lucide="menu"></i>
+    <!-- Sidebar Desktop -->
+    <aside class="bg-white w-64 border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col h-full shadow-sm z-20">
+        <div class="p-6 border-b border-gray-100 flex items-center space-x-3">
+            <div class="p-2 bg-custom-primary rounded-lg text-white"><i data-lucide="wallet"></i></div>
+            <h1 class="text-xl font-bold">FinanceApp</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 font-sarabun">
+            <button onclick="navigate('record')" id="nav-record" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-[#E5EEE4]/50 text-custom-primary font-semibold">
+                <i data-lucide="plus-circle"></i><span>บันทึกรายการ</span>
             </button>
+            <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 font-medium">
+                <i data-lucide="layout-dashboard"></i><span>แดชบอร์ด</span>
+            </button>
+            <button onclick="navigate('settings')" id="nav-settings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 font-medium">
+                <i data-lucide="settings"></i><span>จัดการหมวดหมู่</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full relative w-full overflow-hidden">
+        <header class="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-20">
+            <div class="flex items-center space-x-2 text-gray-800 font-bold"><i data-lucide="wallet" class="text-custom-primary"></i><span>FinanceApp</span></div>
+            <button class="text-gray-500 p-1" onclick="toggleMobileMenu()"><i data-lucide="menu"></i></button>
         </header>
 
-        <!-- Scrollable Content -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 no-scrollbar" id="main-scroll">
             
-            <!-- 🟢 MODULE 1: Record Form -->
+            <!-- MODULE 1: Record -->
             <section id="view-record" class="view-section active max-w-2xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    
-                    <!-- Type Toggle -->
                     <div class="flex p-2 bg-gray-50 border-b border-gray-100 font-sarabun">
                         <button id="typeExpense" onclick="setType('Expense')" class="flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold text-gray-800 transition-all">รายจ่าย</button>
                         <button id="typeIncome" onclick="setType('Income')" class="flex-1 py-2 rounded-xl text-gray-500 font-medium transition-all">รายรับ</button>
                     </div>
-
                     <div class="p-6 space-y-5 font-sarabun">
-                        <!-- Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">วันที่</label>
-                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800">
+                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
                         </div>
-
-                        <!-- Payment Method (Only Expense) -->
                         <div id="paymentMethodContainer">
                             <label class="block text-sm font-medium text-gray-600 mb-1">ช่องทางชำระเงิน</label>
-                            <select id="inputPayment" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800">
+                            <select id="inputPayment" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
                                 <option value="Cash" selected>เงินสด</option>
                                 <option value="Credit Card">บัตรเครดิต</option>
                             </select>
                         </div>
-
-                        <!-- Category -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-1">หมวดหมู่ (เลือกเพื่อระบุยอดเงิน)</label>
-                            <select id="inputCategory" onchange="checkCategory()" class="custom-select w-full p-3 bg-white border border-custom-primary shadow-sm rounded-xl focus-ring-primary text-gray-800 font-semibold">
-                                <option value="" disabled selected>-- กรุณาเลือกหมวดหมู่ --</option>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">หมวดหมู่</label>
+                            <select id="inputCategory" onchange="checkCategory()" class="custom-select w-full p-3 bg-white border border-custom-primary rounded-xl focus-ring-primary font-semibold">
+                                <option value="" disabled selected>-- เลือกหมวดหมู่ --</option>
                             </select>
                         </div>
-
-                        <!-- Amount Summary (แสดงเมื่อกรอกเงินเสร็จ) -->
-                        <div id="amountSummaryContainer" class="hidden bg-[#E5EEE4]/30 border border-custom-primary/50 rounded-xl p-4 flex justify-between items-center cursor-pointer transition-all hover:bg-[#E5EEE4]/50" onclick="openAmountModal()">
-                            <div>
-                                <span class="text-sm font-medium text-gray-500 block">ยอดเงินที่ระบุ</span>
-                                <span class="text-xs text-custom-primary flex items-center mt-1"><i data-lucide="edit-2" class="w-3 h-3 mr-1"></i> แตะเพื่อแก้ไข</span>
-                            </div>
-                            <div class="text-3xl font-bold text-gray-800 text-right">
-                                ฿<span id="displayTotalAmount">0.00</span>
-                            </div>
+                        <div id="amountSummaryContainer" class="hidden bg-[#E5EEE4]/30 border border-custom-primary/50 rounded-xl p-4 flex justify-between items-center cursor-pointer hover:bg-[#E5EEE4]/50 transition-all" onclick="openAmountModal()">
+                            <div><span class="text-sm font-medium text-gray-500">ยอดเงินที่ระบุ</span><span class="text-xs text-custom-primary flex items-center mt-1"><i data-lucide="edit-2" class="w-3 h-3 mr-1"></i> แก้ไข</span></div>
+                            <div class="text-3xl font-bold">฿<span id="displayTotalAmount">0.00</span></div>
                         </div>
-
-                        <!-- Note -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">หมายเหตุ</label>
-                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800" placeholder="เพิ่มรายละเอียด..."></textarea>
+                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary" placeholder="รายละเอียด..."></textarea>
                         </div>
-
-                        <!-- Image Upload -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-1">แนบสลิป/รูปภาพ</label>
-                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-custom-primary file:text-white hover:file:bg-[#58b6bc] transition-all">
+                            <label class="block text-sm font-medium text-gray-600 mb-1">แนบสลิป (ย่อขนาดอัตโนมัติ)</label>
+                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-custom-primary file:text-white">
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 🟢 MODULE 2: Dashboard -->
+            <!-- MODULE 2: Dashboard -->
             <section id="view-dashboard" class="view-section max-w-5xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">ภาพรวมบัญชี</h2>
-                    <select id="dashFilter" onchange="renderDashboard()" class="custom-select p-2 pr-8 border border-gray-200 rounded-lg text-sm bg-white font-sarabun focus:ring-2 focus:ring-custom-primary/50 focus:border-custom-primary outline-none">
+                    <h2 class="text-2xl font-bold text-gray-800">ภาพรวม <span class="text-xs font-normal text-gray-400" id="lastUpdated"></span></h2>
+                    <select id="dashFilter" onchange="renderDashboard()" class="custom-select p-2 border border-gray-200 rounded-lg text-sm bg-white font-sarabun">
                         <option value="daily">รายวัน</option>
                         <option value="monthly">รายเดือน</option>
                         <option value="yearly">รายปี</option>
                     </select>
                 </div>
-
-                <!-- Summary Cards -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 font-sarabun">
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-sm text-gray-500 mb-1">รายรับรวม</div>
-                        <div class="text-2xl font-bold text-green-500" id="dashIncome">฿0.00</div>
+                        <div class="text-sm text-gray-500">รายรับ</div><div class="text-2xl font-bold text-green-500" id="dashIncome">฿0.00</div>
                     </div>
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-sm text-gray-500 mb-1">รายจ่ายรวม</div>
-                        <div class="text-2xl font-bold text-red-500" id="dashExpense">฿0.00</div>
+                        <div class="text-sm text-gray-500">รายจ่าย</div><div class="text-2xl font-bold text-red-500" id="dashExpense">฿0.00</div>
                     </div>
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-custom-primary col-span-2 md:col-span-1">
-                        <div class="text-sm text-gray-500 mb-1">คงเหลือ</div>
-                        <div class="text-2xl font-bold text-gray-800" id="dashBalance">฿0.00</div>
+                    <div class="bg-white p-5 rounded-2xl border border-custom-primary col-span-2 md:col-span-1">
+                        <div class="text-sm text-gray-500">คงเหลือ</div><div class="text-2xl font-bold" id="dashBalance">฿0.00</div>
                     </div>
                 </div>
-
-                <!-- Categories Breakdown -->
-                <h3 class="text-lg font-bold text-gray-800 mb-3">สรุปรายจ่ายตามหมวดหมู่</h3>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 font-sarabun" id="dashCategories">
-                    <!-- Dynamic Content -->
-                    <div class="text-center text-gray-400 py-4">กำลังโหลดข้อมูล...</div>
+                    <div class="text-center text-gray-400 py-4">กำลังโหลด...</div>
                 </div>
             </section>
 
-            <!-- 🟢 MODULE 3: Settings (Categories) -->
+            <!-- MODULE 3: Settings -->
             <section id="view-settings" class="view-section max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">จัดการหมวดหมู่</h2>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-4">เพิ่มหมวดหมู่ใหม่</h3>
                     <div class="flex space-x-3 font-sarabun">
-                        <select id="newCatType" class="custom-select p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
-                            <option value="Expense">รายจ่าย</option>
-                            <option value="Income">รายรับ</option>
-                        </select>
-                        <input type="text" id="newCatName" placeholder="ชื่อหมวดหมู่..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
-                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-5 py-3 rounded-xl font-bold hover:bg-[#58b6bc] transition-colors whitespace-nowrap">เพิ่ม</button>
+                        <select id="newCatType" class="custom-select p-3 bg-gray-50 border border-gray-200 rounded-xl"><option value="Expense">รายจ่าย</option><option value="Income">รายรับ</option></select>
+                        <input type="text" id="newCatName" placeholder="ชื่อ..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-5 py-3 rounded-xl font-bold">เพิ่ม</button>
                     </div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-lg font-semibold mb-4">รายการหมวดหมู่</h3>
-                    <ul id="settingCatList" class="space-y-2 font-sarabun">
-                        <!-- Dynamic Content -->
-                    </ul>
-                </div>
+                <ul id="settingCatList" class="space-y-2 font-sarabun"></ul>
             </section>
-
         </div>
 
-        <!-- Sticky Footer for Record Mode (ปรับปุ่มเล็กลง) -->
-        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-3 pb-6 md:pb-3 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 transition-transform transform translate-y-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <button onclick="submitData()" id="btnSave" class="w-full max-w-sm mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-3 rounded-full font-bold text-base shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center font-sarabun">
+        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-3 pb-6 bg-white/95 border-t z-30 shadow-lg">
+            <button onclick="submitData()" class="w-full max-w-xs mx-auto block bg-custom-primary text-white py-3 rounded-full font-bold shadow-teal-500/30 flex justify-center items-center">
                 <i data-lucide="save" class="w-5 h-5 mr-2"></i> บันทึกข้อมูล
             </button>
         </div>
-
     </main>
 
-    <!-- 🌟 Popup Modal สำหรับกรอกยอดเงิน -->
-    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-end md:justify-center transition-opacity font-sarabun">
-        <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl transform transition-transform translate-y-0">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800" id="modalTitle">ระบุยอดเงิน</h3>
-                <button onclick="closeAmountModal()" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-
-            <!-- โหมดกรอกเงินปกติ -->
-            <div id="modalStandardAmount" class="hidden py-4">
-                <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus-ring-primary text-4xl font-bold text-gray-800 text-center outline-none">
-            </div>
-
-            <!-- โหมดแจกแจงค่าอาหาร (เครื่องคิดเลข) -->
+    <!-- Modal Amount -->
+    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity font-sarabun">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold" id="modalTitle">ระบุยอดเงิน</h3><button onclick="closeAmountModal()" class="p-2 bg-gray-100 rounded-full"><i data-lucide="x"></i></button></div>
+            <div id="modalStandardAmount" class="hidden py-4"><input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-4xl font-bold text-center focus:outline-none"></div>
             <div id="modalFoodAmount" class="hidden">
-                <div class="flex justify-between items-center mb-2 px-2">
-                    <span class="text-sm font-semibold text-gray-600">ยอดรวม</span>
-                    <div class="text-2xl font-bold text-custom-primary">฿<span id="foodTotalDisplay">0</span></div>
-                </div>
-                
-                <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-3 mb-2 no-scrollbar px-1">
-                    <!-- Dynamic inputs generated here -->
-                </div>
-
+                <div class="flex justify-between items-center mb-2"><span class="text-sm font-semibold">ยอดรวม</span><div class="text-2xl font-bold text-custom-primary">฿<span id="foodTotalDisplay">0</span></div></div>
+                <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-3 mb-2 no-scrollbar"></div>
                 <div class="grid grid-cols-4 gap-2">
-                    <button onclick="numpadPress('7')" class="numpad-btn">7</button>
-                    <button onclick="numpadPress('8')" class="numpad-btn">8</button>
-                    <button onclick="numpadPress('9')" class="numpad-btn">9</button>
-                    <button onclick="numpadPress('DEL')" class="numpad-btn bg-red-50 text-red-500"><i data-lucide="delete" class="mx-auto w-6 h-6"></i></button>
-                    
-                    <button onclick="numpadPress('4')" class="numpad-btn">4</button>
-                    <button onclick="numpadPress('5')" class="numpad-btn">5</button>
-                    <button onclick="numpadPress('6')" class="numpad-btn">6</button>
-                    <button onclick="numpadPress('NEXT')" class="numpad-btn numpad-action row-span-2 shadow-md"><i data-lucide="arrow-right" class="mx-auto w-8 h-8"></i></button>
-                    
-                    <button onclick="numpadPress('1')" class="numpad-btn">1</button>
-                    <button onclick="numpadPress('2')" class="numpad-btn">2</button>
-                    <button onclick="numpadPress('3')" class="numpad-btn">3</button>
-                    
-                    <button onclick="numpadPress('0')" class="numpad-btn col-span-2">0</button>
-                    <button onclick="numpadPress('.')" class="numpad-btn">.</button>
+                    <button onclick="numpadPress('7')" class="numpad-btn">7</button><button onclick="numpadPress('8')" class="numpad-btn">8</button><button onclick="numpadPress('9')" class="numpad-btn">9</button><button onclick="numpadPress('DEL')" class="numpad-btn bg-red-50 text-red-500"><i data-lucide="delete" class="mx-auto"></i></button>
+                    <button onclick="numpadPress('4')" class="numpad-btn">4</button><button onclick="numpadPress('5')" class="numpad-btn">5</button><button onclick="numpadPress('6')" class="numpad-btn">6</button><button onclick="numpadPress('NEXT')" class="numpad-btn numpad-action row-span-2"><i data-lucide="arrow-right" class="mx-auto"></i></button>
+                    <button onclick="numpadPress('1')" class="numpad-btn">1</button><button onclick="numpadPress('2')" class="numpad-btn">2</button><button onclick="numpadPress('3')" class="numpad-btn">3</button>
+                    <button onclick="numpadPress('0')" class="numpad-btn col-span-2">0</button><button onclick="numpadPress('.')" class="numpad-btn">.</button>
                 </div>
             </div>
-
-            <!-- ปุ่มยืนยัน / ยกเลิก ของ Modal -->
-            <div class="flex space-x-3 mt-6">
-                <button onclick="closeAmountModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors">ยกเลิก</button>
-                <button onclick="confirmAmount()" class="flex-1 py-3 bg-custom-primary text-white font-bold rounded-xl hover:bg-[#58b6bc] shadow-lg shadow-teal-500/30 transition-colors">ตกลง</button>
-            </div>
+            <div class="flex space-x-3 mt-6"><button onclick="closeAmountModal()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold">ยกเลิก</button><button onclick="confirmAmount()" class="flex-1 py-3 bg-custom-primary text-white rounded-xl font-bold shadow-lg">ตกลง</button></div>
         </div>
     </div>
 
-    <!-- Overlay Loader -->
+    <!-- Toast Notification -->
+    <div id="toast">บันทึกสำเร็จ!</div>
+
+    <!-- Full Loader -->
     <div id="loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-[60] flex flex-col items-center justify-center hidden font-sarabun">
         <i data-lucide="loader-2" class="animate-spin w-12 h-12 text-custom-primary mb-4"></i>
-        <span class="font-semibold text-gray-600" id="loaderText">กำลังประมวลผล...</span>
+        <span class="font-semibold text-gray-600" id="loaderText">กำลังโหลด...</span>
     </div>
 
     <script>
-        // ==========================================
-        // ⚙️ CONFIG & STATE
-        // ==========================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec'; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec';
         
         let currentState = {
-            view: 'record',
-            type: 'Expense',
-            categories: [],
-            foodAmounts: [''],
-            foodActiveIndex: 0,
-            transactions: [],
-            confirmedAmount: 0 // เก็บยอดเงินที่ยืนยันแล้ว
+            view: 'record', type: 'Expense', categories: [], foodAmounts: [''], foodActiveIndex: 0, transactions: [], confirmedAmount: 0
         };
 
         lucide.createIcons();
         document.getElementById('inputDate').valueAsDate = new Date();
 
-        // ==========================================
-        // 📱 MOBILE MENU LOGIC
-        // ==========================================
-        let isMobileMenuOpen = false;
+        // --- Optimization 1: Dashboard Caching ---
+        function saveCache(key, data) {
+            const cacheObj = { timestamp: new Date().getTime(), data: data };
+            localStorage.setItem(key, JSON.stringify(cacheObj));
+        }
+
+        function getCache(key) {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+            return JSON.parse(cached);
+        }
+
+        // --- Optimization 3: Image Compression ---
+        async function compressImage(file, maxWidth = 800) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Quality 70%
+                    };
+                };
+            });
+        }
+
+        // Sidebar & Nav
         function toggleMobileMenu() {
-            isMobileMenuOpen = !isMobileMenuOpen;
             const overlay = document.getElementById('mobile-menu-overlay');
             const drawer = document.getElementById('mobile-menu-drawer');
-
-            if (isMobileMenuOpen) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-                drawer.classList.remove('-translate-x-full');
-            } else {
-                overlay.classList.add('opacity-0');
-                drawer.classList.add('-translate-x-full');
+            const isOpen = !overlay.classList.contains('hidden');
+            if (isOpen) {
+                overlay.classList.add('opacity-0'); drawer.classList.add('-translate-x-full');
                 setTimeout(() => overlay.classList.add('hidden'), 300);
+            } else {
+                overlay.classList.remove('hidden'); setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                drawer.classList.remove('-translate-x-full');
             }
         }
 
-        // ==========================================
-        // 🔄 SPA NAVIGATION LOGIC
-        // ==========================================
         function navigate(viewId) {
             currentState.view = viewId;
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
-            
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('bg-[#E5EEE4]/50', 'text-custom-primary');
-                el.classList.add('text-gray-500');
-            });
-
-            const activeDesktopNav = document.getElementById(`nav-${viewId}`);
-            const activeMobileNav = document.getElementById(`mob-nav-${viewId}`);
-            if(activeDesktopNav) {
-                activeDesktopNav.classList.remove('text-gray-500');
-                activeDesktopNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
-            }
-            if(activeMobileNav) {
-                activeMobileNav.classList.remove('text-gray-500');
-                activeMobileNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
-            }
-
-            const footer = document.getElementById('stickyFooter');
-            if(viewId === 'record') {
-                footer.style.transform = 'translateY(0)';
-                document.getElementById('main-scroll').classList.add('pb-32');
-            } else {
-                footer.style.transform = 'translateY(100%)';
-                document.getElementById('main-scroll').classList.remove('pb-32');
-            }
-
+            document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('bg-[#E5EEE4]/50', 'text-custom-primary'); el.classList.add('text-gray-500'); });
+            const dNav = document.getElementById(`nav-${viewId}`), mNav = document.getElementById(`mob-nav-${viewId}`);
+            if(dNav) { dNav.classList.remove('text-gray-500'); dNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary'); }
+            if(mNav) { mNav.classList.remove('text-gray-500'); mNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary'); }
+            document.getElementById('stickyFooter').style.transform = viewId === 'record' ? 'translateY(0)' : 'translateY(100%)';
             if(viewId === 'dashboard') loadDashboard();
         }
 
-        // ==========================================
-        // 📝 RECORD FORM LOGIC
-        // ==========================================
-        function setType(type) {
-            currentState.type = type;
-            const btnExp = document.getElementById('typeExpense');
-            const btnInc = document.getElementById('typeIncome');
-            
-            if(type === 'Expense') {
-                btnExp.className = 'flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold text-gray-800 transition-all';
-                btnInc.className = 'flex-1 py-2 rounded-xl text-gray-500 font-medium transition-all';
-                document.getElementById('paymentMethodContainer').style.display = 'block';
-            } else {
-                btnInc.className = 'flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold text-gray-800 transition-all';
-                btnExp.className = 'flex-1 py-2 rounded-xl text-gray-500 font-medium transition-all';
-                document.getElementById('paymentMethodContainer').style.display = 'none';
-            }
-            populateCategories();
-            
-            // รีเซ็ตค่ายอดเงินเมื่อสลับประเภท
-            currentState.confirmedAmount = 0;
-            document.getElementById('amountSummaryContainer').classList.add('hidden');
-        }
-
-        async function fetchCategories() {
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getCategories' })
-                });
-                const data = await res.json();
-                currentState.categories = data.data;
-                populateCategories();
-                renderCategorySettings();
-            } catch (e) {
-                console.error('Failed to load categories', e);
-            }
-        }
-
-        function populateCategories() {
-            const select = document.getElementById('inputCategory');
-            select.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกหมวดหมู่ --</option>';
-            
-            const filtered = currentState.categories.filter(c => c.Type === currentState.type);
-            filtered.forEach(c => {
-                select.innerHTML += `<option value="${c.Name}">${c.Name}</option>`;
-            });
-        }
-
-        // ==========================================
-        // 💡 POPUP AMOUNT LOGIC
-        // ==========================================
+        // Amount Modal Logic
         function checkCategory() {
-            const cat = document.getElementById('inputCategory').value;
-            if(!cat) return;
-            
-            // นำ focus ออกจาก Dropdown เพื่อให้ UI ของมือถือปิดตัวลงอย่างสมบูรณ์
             document.getElementById('inputCategory').blur();
-            
-            // หน่วงเวลาเล็กน้อย (150ms) ก่อนเรียก Popup เพื่อลดอาการกระพริบชนกัน
-            setTimeout(() => {
-                openAmountModal();
-            }, 150);
+            setTimeout(() => openAmountModal(), 150);
         }
 
         function openAmountModal() {
             const cat = document.getElementById('inputCategory').value;
-            if(!cat) {
-                alert('กรุณาเลือกหมวดหมู่ก่อน');
-                return;
-            }
-
-            const standard = document.getElementById('modalStandardAmount');
-            const food = document.getElementById('modalFoodAmount');
+            if(!cat) return;
             document.getElementById('modalTitle').innerText = `ระบุยอดเงิน (${cat})`;
             document.getElementById('amountModal').classList.remove('hidden');
-
             if(cat === 'อาหาร') {
-                standard.classList.add('hidden');
-                food.classList.remove('hidden');
+                document.getElementById('modalStandardAmount').classList.add('hidden');
+                document.getElementById('modalFoodAmount').classList.remove('hidden');
                 renderFoodInputs();
             } else {
-                standard.classList.remove('hidden');
-                food.classList.add('hidden');
-                // โฟกัสช่องกรอกอัตโนมัติ
+                document.getElementById('modalStandardAmount').classList.remove('hidden');
+                document.getElementById('modalFoodAmount').classList.add('hidden');
                 setTimeout(() => document.getElementById('inputAmount').focus(), 100);
             }
         }
 
-        function closeAmountModal() {
-            document.getElementById('amountModal').classList.add('hidden');
-        }
+        function closeAmountModal() { document.getElementById('amountModal').classList.add('hidden'); }
 
         function confirmAmount() {
             const cat = document.getElementById('inputCategory').value;
             let total = 0;
-
-            if(cat === 'อาหาร') {
-                total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
-            } else {
-                total = parseFloat(document.getElementById('inputAmount').value);
-            }
-
-            if(isNaN(total) || total <= 0) {
-                alert('กรุณาระบุยอดเงินให้ถูกต้อง');
-                return;
-            }
-
-            // บันทึกยอดเงินและโชว์หน้าสรุป
+            if(cat === 'อาหาร') total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
+            else total = parseFloat(document.getElementById('inputAmount').value);
+            if(isNaN(total) || total <= 0) return alert('ยอดเงินไม่ถูกต้อง');
             currentState.confirmedAmount = total;
-            document.getElementById('displayTotalAmount').innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('displayTotalAmount').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('amountSummaryContainer').classList.remove('hidden');
-            
             closeAmountModal();
         }
 
-        // ฟังก์ชันของ Numpad เครื่องคิดเลขอาหาร
         function renderFoodInputs() {
-            const list = document.getElementById('foodInputsList');
-            list.innerHTML = '';
-            let total = 0;
-
+            const list = document.getElementById('foodInputsList'); list.innerHTML = ''; let total = 0;
             currentState.foodAmounts.forEach((amt, index) => {
                 const isActive = index === currentState.foodActiveIndex;
-                const borderClass = isActive ? 'border-custom-primary' : 'border-gray-200';
-                const bgClass = isActive ? 'bg-white shadow-sm' : 'bg-gray-100 opacity-70';
-                
-                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-20 flex-shrink-0 p-2 text-center rounded-lg border-2 ${borderClass} ${bgClass} font-bold text-gray-800 cursor-pointer outline-none transition-all" value="${amt}">`;
-                
+                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-20 flex-shrink-0 p-2 text-center rounded-lg border-2 ${isActive ? 'border-custom-primary bg-white shadow-sm' : 'border-gray-200 bg-gray-100'} font-bold cursor-pointer outline-none" value="${amt}">`;
                 total += parseFloat(amt || 0);
             });
-
             document.getElementById('foodTotalDisplay').innerText = total.toFixed(2);
             list.scrollLeft = list.scrollWidth;
         }
 
-        function setActiveFoodIndex(index) {
-            currentState.foodActiveIndex = index;
-            renderFoodInputs();
-        }
+        function setActiveFoodIndex(index) { currentState.foodActiveIndex = index; renderFoodInputs(); }
 
         function numpadPress(key) {
             let currentStr = currentState.foodAmounts[currentState.foodActiveIndex].toString();
-
-            if (key === 'DEL') {
-                currentState.foodAmounts[currentState.foodActiveIndex] = currentStr.slice(0, -1);
-            } else if (key === 'NEXT') {
-                if(currentStr !== '') {
-                    currentState.foodAmounts.push('');
-                    currentState.foodActiveIndex = currentState.foodAmounts.length - 1;
-                }
-            } else {
-                if (key === '.' && currentStr.includes('.')) return;
-                currentState.foodAmounts[currentState.foodActiveIndex] = currentStr + key;
-            }
+            if (key === 'DEL') currentState.foodAmounts[currentState.foodActiveIndex] = currentStr.slice(0, -1);
+            else if (key === 'NEXT') { if(currentStr !== '') { currentState.foodAmounts.push(''); currentState.foodActiveIndex = currentState.foodAmounts.length - 1; } }
+            else { if (key === '.' && currentStr.includes('.')) return; currentState.foodAmounts[currentState.foodActiveIndex] = currentStr + key; }
             renderFoodInputs();
         }
 
-        // ==========================================
-        // 📤 SUBMIT DATA
-        // ==========================================
+        // --- Optimization 2: Optimistic UI Submit ---
         async function submitData() {
             const category = document.getElementById('inputCategory').value;
-            
-            if(!category) return alert('กรุณาเลือกหมวดหมู่');
-            if(currentState.confirmedAmount <= 0) {
-                openAmountModal(); // เด้งให้กรอกถ้าลืม
-                return;
-            }
+            if(!category || currentState.confirmedAmount <= 0) return alert('กรุณาระบุข้อมูลให้ครบ');
 
             const fileInput = document.getElementById('inputFile');
+            const note = document.getElementById('inputNote').value;
+            const date = document.getElementById('inputDate').value;
+            const payment = currentState.type === 'Expense' ? document.getElementById('inputPayment').value : '-';
+            const amount = currentState.confirmedAmount;
+            const type = currentState.type;
+
+            // Step 1: Optimistic Feedback (ปิด UI และเคลียร์ทันที)
+            showToast('กำลังส่งข้อมูลในพื้นหลัง...');
+            resetForm(); 
+
+            // Step 2: Background Processing (Compression + Fetch)
             let base64File = null;
-            let fileName = null;
-
-            showLoader('กำลังบันทึกข้อมูล...');
-
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                fileName = file.name;
-                base64File = await toBase64(file);
+                base64File = await compressImage(fileInput.files[0]);
             }
-
-            const payload = {
-                date: document.getElementById('inputDate').value,
-                type: currentState.type,
-                paymentMethod: currentState.type === 'Expense' ? document.getElementById('inputPayment').value : '-',
-                category: category,
-                amount: currentState.confirmedAmount, // ใช้ยอดที่ยืนยันแล้ว
-                note: document.getElementById('inputNote').value,
-                imageBase64: base64File,
-                imageName: fileName
-            };
 
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'saveTransaction', payload: payload })
+                    body: JSON.stringify({
+                        action: 'saveTransaction',
+                        payload: { date, type, paymentMethod: payment, category, amount, note, imageBase64: base64File, imageName: 'upload.jpg' }
+                    })
                 });
                 const data = await res.json();
-                
                 if(data.status === 'success') {
-                    // ไม่ใช้ Alert กวนใจ แต่ใช้ Reset Form เลย
-                    resetForm();
-                    // แจ้งเตือนสวยๆ ด้วยการสลับไป Dashboard หรือโชว์ Toast (เบื้องต้นใช้ alert ตามเดิมแต่ลดความน่ารำคาญ)
-                    alert('บันทึกสำเร็จ!'); 
+                    showToast('บันทึกสำเร็จเรียบร้อย');
+                    // อัปเดต Cache ของ Dashboard อัตโนมัติ (แอบไปโหลดข้อมูลใหม่)
+                    loadDashboard(true); 
                 } else {
-                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    alert('บันทึกไม่สำเร็จ: ' + data.message);
                 }
             } catch (e) {
-                alert('Connection Error');
-            } finally {
-                hideLoader();
+                alert('การเชื่อมต่อผิดพลาด ข้อมูลอาจยังไม่เข้าชีท');
             }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
         }
 
         function resetForm() {
@@ -613,136 +376,97 @@
             document.getElementById('inputAmount').value = '';
             document.getElementById('inputNote').value = '';
             document.getElementById('inputFile').value = '';
-            
-            // ซ่อนกล่องสรุปยอดและเคลียร์ค่า state
             currentState.confirmedAmount = 0;
             document.getElementById('amountSummaryContainer').classList.add('hidden');
-            
-            currentState.foodAmounts = [''];
-            currentState.foodActiveIndex = 0;
-            renderFoodInputs();
+            currentState.foodAmounts = ['']; currentState.foodActiveIndex = 0;
         }
 
-        // ==========================================
-        // 📊 DASHBOARD & SETTINGS
-        // ==========================================
-        async function loadDashboard() {
-            showLoader('กำลังดึงข้อมูล...');
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getDashboardData' })
-                });
-                const data = await res.json();
-                currentState.transactions = data.data;
-                renderDashboard();
-            } catch (e) {
-                console.error(e);
-            } finally {
-                hideLoader();
+        // --- Dashboard with Caching ---
+        async function loadDashboard(forceRefresh = false) {
+            // โหลดจาก Cache มาโชว์ก่อนทันที
+            const cached = getCache('dash_data');
+            if (cached && !forceRefresh) {
+                currentState.transactions = cached.data;
+                renderDashboard(true);
+            }
+
+            // ถ้าไม่มี Cache หรือต้องการอัปเดต ให้ Fetch ใหม่แบบเงียบๆ
+            if (!cached || forceRefresh || (new Date().getTime() - cached.timestamp > 300000)) { // 5 mins stale
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) });
+                    const data = await res.json();
+                    currentState.transactions = data.data;
+                    saveCache('dash_data', data.data);
+                    renderDashboard(false);
+                } catch (e) { console.error(e); }
             }
         }
 
-        function renderDashboard() {
+        function renderDashboard(isCached) {
             const filter = document.getElementById('dashFilter').value;
             const today = new Date();
-            let filteredTx = [];
-
-            filteredTx = currentState.transactions.filter(tx => {
-                const txDate = new Date(tx.Date);
-                if(filter === 'daily') return txDate.toDateString() === today.toDateString();
-                if(filter === 'monthly') return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
-                if(filter === 'yearly') return txDate.getFullYear() === today.getFullYear();
-                return true;
+            const filteredTx = currentState.transactions.filter(tx => {
+                const d = new Date(tx.Date);
+                if(filter === 'daily') return d.toDateString() === today.toDateString();
+                if(filter === 'monthly') return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+                return d.getFullYear() === today.getFullYear();
             });
 
-            let income = 0, expense = 0;
-            let catSummary = {};
-
+            let inc = 0, exp = 0, catMap = {};
             filteredTx.forEach(tx => {
-                const amt = parseFloat(tx.Amount);
-                if(tx.Type === 'Income') income += amt;
-                else {
-                    expense += amt;
-                    catSummary[tx.Category] = (catSummary[tx.Category] || 0) + amt;
-                }
+                const a = parseFloat(tx.Amount);
+                if(tx.Type === 'Income') inc += a;
+                else { exp += a; catMap[tx.Category] = (catMap[tx.Category] || 0) + a; }
             });
 
-            document.getElementById('dashIncome').innerText = `฿${income.toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('dashExpense').innerText = `฿${expense.toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('dashBalance').innerText = `฿${(income - expense).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('dashIncome').innerText = `฿${inc.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('dashExpense').innerText = `฿${exp.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('dashBalance').innerText = `฿${(inc - exp).toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('lastUpdated').innerText = isCached ? '(จากหน่วยความจำ)' : '(อัปเดตล่าสุด)';
 
-            const catDiv = document.getElementById('dashCategories');
-            catDiv.innerHTML = '';
-            if(Object.keys(catSummary).length === 0) {
-                catDiv.innerHTML = '<div class="text-center text-gray-400 py-4">ไม่มีข้อมูลรายจ่าย</div>';
-            } else {
-                for (const [cat, amt] of Object.entries(catSummary)) {
-                    const percent = ((amt / expense) * 100).toFixed(0);
-                    catDiv.innerHTML += `
-                        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 rounded-full bg-custom-primary"></div>
-                                <span class="text-sm font-medium text-gray-700">${cat}</span>
-                            </div>
-                            <div class="text-sm font-bold text-gray-800">฿${amt.toLocaleString()} <span class="text-xs font-normal text-gray-400 ml-1">(${percent}%)</span></div>
-                        </div>
-                    `;
+            const catDiv = document.getElementById('dashCategories'); catDiv.innerHTML = '';
+            if(Object.keys(catMap).length === 0) catDiv.innerHTML = '<div class="text-center text-gray-400 py-4">ไม่มีข้อมูล</div>';
+            else {
+                for (const [c, a] of Object.entries(catMap)) {
+                    const p = ((a / exp) * 100).toFixed(0);
+                    catDiv.innerHTML += `<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"><div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-custom-primary"></div><span class="text-sm font-medium">${c}</span></div><div class="text-sm font-bold">฿${a.toLocaleString()} <span class="text-xs font-normal text-gray-400 ml-1">(${p}%)</span></div></div>`;
                 }
             }
         }
 
+        // Settings & Categories
+        async function fetchCategories() {
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getCategories' }) });
+                const data = await res.json();
+                currentState.categories = data.data;
+                populateCategories(); renderCategorySettings();
+            } catch (e) { console.error(e); }
+        }
+        function populateCategories() {
+            const s = document.getElementById('inputCategory'); s.innerHTML = '<option value="" disabled selected>-- เลือกหมวดหมู่ --</option>';
+            currentState.categories.filter(c => c.Type === currentState.type).forEach(c => { s.innerHTML += `<option value="${c.Name}">${c.Name}</option>`; });
+        }
         function renderCategorySettings() {
-            const list = document.getElementById('settingCatList');
-            list.innerHTML = '';
+            const l = document.getElementById('settingCatList'); l.innerHTML = '';
             currentState.categories.forEach(c => {
-                const badgeColor = c.Type === 'Income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                list.innerHTML += `
-                    <li class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <span class="font-medium text-gray-700">${c.Name}</span>
-                        <span class="text-xs font-bold px-2 py-1 rounded-md ${badgeColor}">${c.Type === 'Income' ? 'รายรับ' : 'รายจ่าย'}</span>
-                    </li>
-                `;
+                const color = c.Type === 'Income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                l.innerHTML += `<li class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm font-sarabun"><span class="font-medium">${c.Name}</span><span class="text-xs font-bold px-2 py-1 rounded-md ${color}">${c.Type === 'Income' ? 'รายรับ' : 'รายจ่าย'}</span></li>`;
             });
         }
+        function setType(t) { currentState.type = t; const bE = document.getElementById('typeExpense'), bI = document.getElementById('typeIncome'); bE.className = t === 'Expense' ? 'flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold' : 'flex-1 py-2 rounded-xl text-gray-500 font-medium'; bI.className = t === 'Income' ? 'flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold' : 'flex-1 py-2 rounded-xl text-gray-500 font-medium'; document.getElementById('paymentMethodContainer').style.display = t === 'Expense' ? 'block' : 'none'; populateCategories(); }
 
         async function saveCategory() {
-            const name = document.getElementById('newCatName').value;
-            const type = document.getElementById('newCatType').value;
+            const name = document.getElementById('newCatName').value, type = document.getElementById('newCatType').value;
             if(!name) return;
-
-            showLoader('กำลังเพิ่มหมวดหมู่...');
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'saveCategory', payload: { name, type } })
-                });
-                document.getElementById('newCatName').value = '';
-                await fetchCategories();
-            } catch (e) { console.error(e); }
-            finally { hideLoader(); }
-        }
-
-        // ==========================================
-        // 🔧 HELPERS
-        // ==========================================
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
-        function showLoader(text) {
-            document.getElementById('loaderText').innerText = text;
             document.getElementById('loader').classList.remove('hidden');
+            try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveCategory', payload: { name, type } }) }); document.getElementById('newCatName').value = ''; await fetchCategories(); } 
+            finally { document.getElementById('loader').classList.add('hidden'); }
         }
-        function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
 
-        // Initial Boot
+        // Init
         fetchCategories();
-        lucide.createIcons();
-
+        loadDashboard(); // Load cache first automatically
     </script>
 </body>
 </html>
