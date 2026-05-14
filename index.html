@@ -59,7 +59,7 @@
         .mobile-drawer { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex overflow-hidden bg-gray-50">
+<body class="text-gray-800 h-[100dvh] flex overflow-hidden bg-gray-50">
 
     <!-- 📱 Mobile Navigation Drawer & Overlay -->
     <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity" onclick="toggleMobileMenu()"></div>
@@ -285,7 +285,7 @@
         </div>
 
         <!-- Sticky Footer for Record Mode -->
-        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 z-30 transition-transform transform translate-y-0">
+        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-4 pb-8 md:pb-4 bg-white/95 backdrop-blur-md border-t border-gray-200 z-40 transition-transform transform translate-y-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
             <button onclick="submitData()" id="btnSave" class="w-full max-w-2xl mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center font-sarabun">
                 <i data-lucide="save" class="mr-2"></i> บันทึกข้อมูล
             </button>
@@ -303,7 +303,7 @@
         // ==========================================
         // ⚙️ CONFIG & STATE
         // ==========================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec'; // ⚠️ นำ URL จาก GAS มาวางที่นี่
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec'; // ⚠️ URL ของคุณ
         
         let currentState = {
             view: 'record',
