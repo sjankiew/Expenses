@@ -62,7 +62,7 @@
 <body class="text-gray-800 h-[100dvh] flex overflow-hidden bg-gray-50">
 
     <!-- 📱 Mobile Navigation Drawer & Overlay -->
-    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity" onclick="toggleMobileMenu()"></div>
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleMobileMenu()"></div>
     <aside id="mobile-menu-drawer" class="mobile-drawer fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 flex flex-col shadow-lg md:hidden transform -translate-x-full">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -124,7 +124,6 @@
                 <i data-lucide="wallet" class="text-custom-primary"></i>
                 <span>FinanceApp</span>
             </div>
-            <!-- 📱 Toggle Button for Mobile Menu -->
             <button class="text-gray-500 focus:outline-none p-1 rounded-full hover:bg-gray-100" onclick="toggleMobileMenu()">
                 <i data-lucide="menu"></i>
             </button>
@@ -138,23 +137,22 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     
                     <!-- Type Toggle -->
-                    <div class="flex p-2 bg-gray-50 border-b border-gray-100">
+                    <div class="flex p-2 bg-gray-50 border-b border-gray-100 font-sarabun">
                         <button id="typeExpense" onclick="setType('Expense')" class="flex-1 py-2 rounded-xl bg-white shadow-sm font-semibold text-gray-800 transition-all">รายจ่าย</button>
                         <button id="typeIncome" onclick="setType('Income')" class="flex-1 py-2 rounded-xl text-gray-500 font-medium transition-all">รายรับ</button>
                     </div>
 
-                    <div class="p-6 space-y-5">
+                    <div class="p-6 space-y-5 font-sarabun">
                         <!-- Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">วันที่</label>
-                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
+                            <input type="date" id="inputDate" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800">
                         </div>
 
                         <!-- Payment Method (Only Expense) -->
                         <div id="paymentMethodContainer">
                             <label class="block text-sm font-medium text-gray-600 mb-1">ช่องทางชำระเงิน</label>
-                            <!-- ✨ Modern Select -->
-                            <select id="inputPayment" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
+                            <select id="inputPayment" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800">
                                 <option value="Cash" selected>เงินสด</option>
                                 <option value="Credit Card">บัตรเครดิต</option>
                             </select>
@@ -162,62 +160,33 @@
 
                         <!-- Category -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-1">หมวดหมู่</label>
-                            <!-- ✨ Modern Select -->
-                            <select id="inputCategory" onchange="checkCategory()" class="custom-select w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun">
-                                <option value="" disabled selected>โหลดข้อมูล...</option>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">หมวดหมู่ (เลือกเพื่อระบุยอดเงิน)</label>
+                            <select id="inputCategory" onchange="checkCategory()" class="custom-select w-full p-3 bg-white border border-custom-primary shadow-sm rounded-xl focus-ring-primary text-gray-800 font-semibold">
+                                <option value="" disabled selected>-- กรุณาเลือกหมวดหมู่ --</option>
                             </select>
                         </div>
 
-                        <!-- Standard Amount Input -->
-                        <div id="standardAmountContainer">
-                            <label class="block text-sm font-medium text-gray-600 mb-1">ยอดเงิน (บาท)</label>
-                            <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-2xl font-bold text-gray-800 text-right font-sarabun">
-                        </div>
-
-                        <!-- 💡 Special Feature: Food Multi-Amount -->
-                        <div id="foodAmountContainer" class="hidden border border-gray-200 rounded-xl p-4 bg-gray-50">
-                            <div class="flex justify-between items-center mb-3">
-                                <label class="text-sm font-semibold text-gray-600 flex items-center"><i data-lucide="utensils" class="w-4 h-4 mr-1"></i> แจกแจงยอดค่าอาหาร</label>
-                                <div class="text-xl font-bold text-custom-primary font-sarabun">รวม: <span id="foodTotalDisplay">0</span></div>
+                        <!-- Amount Summary (แสดงเมื่อกรอกเงินเสร็จ) -->
+                        <div id="amountSummaryContainer" class="hidden bg-[#E5EEE4]/30 border border-custom-primary/50 rounded-xl p-4 flex justify-between items-center cursor-pointer transition-all hover:bg-[#E5EEE4]/50" onclick="openAmountModal()">
+                            <div>
+                                <span class="text-sm font-medium text-gray-500 block">ยอดเงินที่ระบุ</span>
+                                <span class="text-xs text-custom-primary flex items-center mt-1"><i data-lucide="edit-2" class="w-3 h-3 mr-1"></i> แตะเพื่อแก้ไข</span>
                             </div>
-                            
-                            <!-- Input List -->
-                            <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-2 no-scrollbar font-sarabun">
-                                <input type="number" readonly class="food-input w-24 flex-shrink-0 p-3 text-center rounded-lg border-2 border-custom-primary bg-white font-bold" value="">
-                            </div>
-
-                            <!-- Custom Numpad -->
-                            <div class="grid grid-cols-4 gap-2 mt-4 font-sarabun">
-                                <button onclick="numpadPress('7')" class="numpad-btn">7</button>
-                                <button onclick="numpadPress('8')" class="numpad-btn">8</button>
-                                <button onclick="numpadPress('9')" class="numpad-btn">9</button>
-                                <button onclick="numpadPress('DEL')" class="numpad-btn bg-red-100 text-red-600"><i data-lucide="delete" class="mx-auto"></i></button>
-                                
-                                <button onclick="numpadPress('4')" class="numpad-btn">4</button>
-                                <button onclick="numpadPress('5')" class="numpad-btn">5</button>
-                                <button onclick="numpadPress('6')" class="numpad-btn">6</button>
-                                <button onclick="numpadPress('NEXT')" class="numpad-btn numpad-action row-span-2 shadow-md"><i data-lucide="arrow-right" class="mx-auto w-8 h-8"></i></button>
-                                
-                                <button onclick="numpadPress('1')" class="numpad-btn">1</button>
-                                <button onclick="numpadPress('2')" class="numpad-btn">2</button>
-                                <button onclick="numpadPress('3')" class="numpad-btn">3</button>
-                                
-                                <button onclick="numpadPress('0')" class="numpad-btn col-span-2">0</button>
-                                <button onclick="numpadPress('.')" class="numpad-btn">.</button>
+                            <div class="text-3xl font-bold text-gray-800 text-right">
+                                ฿<span id="displayTotalAmount">0.00</span>
                             </div>
                         </div>
 
                         <!-- Note -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">หมายเหตุ</label>
-                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800 font-sarabun" placeholder="เพิ่มรายละเอียด..."></textarea>
+                            <textarea id="inputNote" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary text-gray-800" placeholder="เพิ่มรายละเอียด..."></textarea>
                         </div>
 
                         <!-- Image Upload -->
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">แนบสลิป/รูปภาพ</label>
-                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-custom-primary file:text-white hover:file:bg-[#58b6bc] transition-all font-sarabun">
+                            <input type="file" id="inputFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-custom-primary file:text-white hover:file:bg-[#58b6bc] transition-all">
                         </div>
                     </div>
                 </div>
@@ -227,7 +196,6 @@
             <section id="view-dashboard" class="view-section max-w-5xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">ภาพรวมบัญชี</h2>
-                    <!-- ✨ Modern Select -->
                     <select id="dashFilter" onchange="renderDashboard()" class="custom-select p-2 pr-8 border border-gray-200 rounded-lg text-sm bg-white font-sarabun focus:ring-2 focus:ring-custom-primary/50 focus:border-custom-primary outline-none">
                         <option value="daily">รายวัน</option>
                         <option value="monthly">รายเดือน</option>
@@ -265,7 +233,6 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <h3 class="text-lg font-semibold mb-4">เพิ่มหมวดหมู่ใหม่</h3>
                     <div class="flex space-x-3 font-sarabun">
-                        <!-- ✨ Modern Select -->
                         <select id="newCatType" class="custom-select p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary">
                             <option value="Expense">รายจ่าย</option>
                             <option value="Income">รายรับ</option>
@@ -284,17 +251,69 @@
 
         </div>
 
-        <!-- Sticky Footer for Record Mode -->
-        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-4 pb-8 md:pb-4 bg-white/95 backdrop-blur-md border-t border-gray-200 z-40 transition-transform transform translate-y-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <button onclick="submitData()" id="btnSave" class="w-full max-w-2xl mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center font-sarabun">
-                <i data-lucide="save" class="mr-2"></i> บันทึกข้อมูล
+        <!-- Sticky Footer for Record Mode (ปรับปุ่มเล็กลง) -->
+        <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-3 pb-6 md:pb-3 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 transition-transform transform translate-y-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+            <button onclick="submitData()" id="btnSave" class="w-full max-w-sm mx-auto block bg-custom-primary hover:bg-[#58b6bc] text-white py-3 rounded-full font-bold text-base shadow-lg shadow-teal-500/30 transition-all flex justify-center items-center font-sarabun">
+                <i data-lucide="save" class="w-5 h-5 mr-2"></i> บันทึกข้อมูล
             </button>
         </div>
 
     </main>
 
+    <!-- 🌟 Popup Modal สำหรับกรอกยอดเงิน -->
+    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-end md:justify-center transition-opacity font-sarabun">
+        <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl transform transition-transform translate-y-0">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800" id="modalTitle">ระบุยอดเงิน</h3>
+                <button onclick="closeAmountModal()" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- โหมดกรอกเงินปกติ -->
+            <div id="modalStandardAmount" class="hidden py-4">
+                <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus-ring-primary text-4xl font-bold text-gray-800 text-center outline-none">
+            </div>
+
+            <!-- โหมดแจกแจงค่าอาหาร (เครื่องคิดเลข) -->
+            <div id="modalFoodAmount" class="hidden">
+                <div class="flex justify-between items-center mb-2 px-2">
+                    <span class="text-sm font-semibold text-gray-600">ยอดรวม</span>
+                    <div class="text-2xl font-bold text-custom-primary">฿<span id="foodTotalDisplay">0</span></div>
+                </div>
+                
+                <div id="foodInputsList" class="flex overflow-x-auto space-x-2 pb-3 mb-2 no-scrollbar px-1">
+                    <!-- Dynamic inputs generated here -->
+                </div>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="numpadPress('7')" class="numpad-btn">7</button>
+                    <button onclick="numpadPress('8')" class="numpad-btn">8</button>
+                    <button onclick="numpadPress('9')" class="numpad-btn">9</button>
+                    <button onclick="numpadPress('DEL')" class="numpad-btn bg-red-50 text-red-500"><i data-lucide="delete" class="mx-auto w-6 h-6"></i></button>
+                    
+                    <button onclick="numpadPress('4')" class="numpad-btn">4</button>
+                    <button onclick="numpadPress('5')" class="numpad-btn">5</button>
+                    <button onclick="numpadPress('6')" class="numpad-btn">6</button>
+                    <button onclick="numpadPress('NEXT')" class="numpad-btn numpad-action row-span-2 shadow-md"><i data-lucide="arrow-right" class="mx-auto w-8 h-8"></i></button>
+                    
+                    <button onclick="numpadPress('1')" class="numpad-btn">1</button>
+                    <button onclick="numpadPress('2')" class="numpad-btn">2</button>
+                    <button onclick="numpadPress('3')" class="numpad-btn">3</button>
+                    
+                    <button onclick="numpadPress('0')" class="numpad-btn col-span-2">0</button>
+                    <button onclick="numpadPress('.')" class="numpad-btn">.</button>
+                </div>
+            </div>
+
+            <!-- ปุ่มยืนยัน / ยกเลิก ของ Modal -->
+            <div class="flex space-x-3 mt-6">
+                <button onclick="closeAmountModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors">ยกเลิก</button>
+                <button onclick="confirmAmount()" class="flex-1 py-3 bg-custom-primary text-white font-bold rounded-xl hover:bg-[#58b6bc] shadow-lg shadow-teal-500/30 transition-colors">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Overlay Loader -->
-    <div id="loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden font-sarabun">
+    <div id="loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-[60] flex flex-col items-center justify-center hidden font-sarabun">
         <i data-lucide="loader-2" class="animate-spin w-12 h-12 text-custom-primary mb-4"></i>
         <span class="font-semibold text-gray-600" id="loaderText">กำลังประมวลผล...</span>
     </div>
@@ -303,7 +322,7 @@
         // ==========================================
         // ⚙️ CONFIG & STATE
         // ==========================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec'; // ⚠️ URL ของคุณ
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec'; 
         
         let currentState = {
             view: 'record',
@@ -311,10 +330,10 @@
             categories: [],
             foodAmounts: [''],
             foodActiveIndex: 0,
-            transactions: []
+            transactions: [],
+            confirmedAmount: 0 // เก็บยอดเงินที่ยืนยันแล้ว
         };
 
-        // Initialize Icons
         lucide.createIcons();
         document.getElementById('inputDate').valueAsDate = new Date();
 
@@ -322,7 +341,6 @@
         // 📱 MOBILE MENU LOGIC
         // ==========================================
         let isMobileMenuOpen = false;
-
         function toggleMobileMenu() {
             isMobileMenuOpen = !isMobileMenuOpen;
             const overlay = document.getElementById('mobile-menu-overlay');
@@ -330,13 +348,11 @@
 
             if (isMobileMenuOpen) {
                 overlay.classList.remove('hidden');
-                // Small delay to allow display:block to take effect before opacity transition
                 setTimeout(() => overlay.classList.remove('opacity-0'), 10);
                 drawer.classList.remove('-translate-x-full');
             } else {
                 overlay.classList.add('opacity-0');
                 drawer.classList.add('-translate-x-full');
-                // Wait for transition to finish before hiding
                 setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
@@ -346,21 +362,16 @@
         // ==========================================
         function navigate(viewId) {
             currentState.view = viewId;
-            
-            // Toggle Views
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
             
-            // Toggle Nav Active state (for both desktop and mobile)
             document.querySelectorAll('.nav-btn').forEach(el => {
                 el.classList.remove('bg-[#E5EEE4]/50', 'text-custom-primary');
                 el.classList.add('text-gray-500');
             });
 
-            // Update both desktop and mobile nav items
             const activeDesktopNav = document.getElementById(`nav-${viewId}`);
             const activeMobileNav = document.getElementById(`mob-nav-${viewId}`);
-            
             if(activeDesktopNav) {
                 activeDesktopNav.classList.remove('text-gray-500');
                 activeDesktopNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
@@ -370,7 +381,6 @@
                 activeMobileNav.classList.add('bg-[#E5EEE4]/50', 'text-custom-primary');
             }
 
-            // Sticky Footer Visibility
             const footer = document.getElementById('stickyFooter');
             if(viewId === 'record') {
                 footer.style.transform = 'translateY(0)';
@@ -380,7 +390,6 @@
                 document.getElementById('main-scroll').classList.remove('pb-32');
             }
 
-            // Load specific data on navigate
             if(viewId === 'dashboard') loadDashboard();
         }
 
@@ -402,22 +411,14 @@
                 document.getElementById('paymentMethodContainer').style.display = 'none';
             }
             populateCategories();
-            checkCategory();
+            
+            // รีเซ็ตค่ายอดเงินเมื่อสลับประเภท
+            currentState.confirmedAmount = 0;
+            document.getElementById('amountSummaryContainer').classList.add('hidden');
         }
 
         async function fetchCategories() {
             try {
-                // Mockup if API not set
-                if(API_URL === 'YOUR_GAS_WEB_APP_URL') {
-                    currentState.categories = [
-                        {Name: 'อาหาร', Type: 'Expense'}, {Name: 'ออกกำลังกาย', Type: 'Expense'}, 
-                        {Name: 'รถ', Type: 'Expense'}, {Name: 'เงินเดือน', Type: 'Income'}
-                    ];
-                    populateCategories();
-                    renderCategorySettings(); // Render settings list on load too
-                    return;
-                }
-
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'getCategories' })
@@ -433,7 +434,7 @@
 
         function populateCategories() {
             const select = document.getElementById('inputCategory');
-            select.innerHTML = '<option value="" disabled selected>เลือกหมวดหมู่</option>';
+            select.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกหมวดหมู่ --</option>';
             
             const filtered = currentState.categories.filter(c => c.Type === currentState.type);
             filtered.forEach(c => {
@@ -441,11 +442,26 @@
             });
         }
 
-        // 💡 Complex Logic: Food Numpad handling
+        // ==========================================
+        // 💡 POPUP AMOUNT LOGIC
+        // ==========================================
         function checkCategory() {
             const cat = document.getElementById('inputCategory').value;
-            const standard = document.getElementById('standardAmountContainer');
-            const food = document.getElementById('foodAmountContainer');
+            if(!cat) return;
+            openAmountModal();
+        }
+
+        function openAmountModal() {
+            const cat = document.getElementById('inputCategory').value;
+            if(!cat) {
+                alert('กรุณาเลือกหมวดหมู่ก่อน');
+                return;
+            }
+
+            const standard = document.getElementById('modalStandardAmount');
+            const food = document.getElementById('modalFoodAmount');
+            document.getElementById('modalTitle').innerText = `ระบุยอดเงิน (${cat})`;
+            document.getElementById('amountModal').classList.remove('hidden');
 
             if(cat === 'อาหาร') {
                 standard.classList.add('hidden');
@@ -454,9 +470,39 @@
             } else {
                 standard.classList.remove('hidden');
                 food.classList.add('hidden');
+                // โฟกัสช่องกรอกอัตโนมัติ
+                setTimeout(() => document.getElementById('inputAmount').focus(), 100);
             }
         }
 
+        function closeAmountModal() {
+            document.getElementById('amountModal').classList.add('hidden');
+        }
+
+        function confirmAmount() {
+            const cat = document.getElementById('inputCategory').value;
+            let total = 0;
+
+            if(cat === 'อาหาร') {
+                total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
+            } else {
+                total = parseFloat(document.getElementById('inputAmount').value);
+            }
+
+            if(isNaN(total) || total <= 0) {
+                alert('กรุณาระบุยอดเงินให้ถูกต้อง');
+                return;
+            }
+
+            // บันทึกยอดเงินและโชว์หน้าสรุป
+            currentState.confirmedAmount = total;
+            document.getElementById('displayTotalAmount').innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('amountSummaryContainer').classList.remove('hidden');
+            
+            closeAmountModal();
+        }
+
+        // ฟังก์ชันของ Numpad เครื่องคิดเลขอาหาร
         function renderFoodInputs() {
             const list = document.getElementById('foodInputsList');
             list.innerHTML = '';
@@ -465,15 +511,14 @@
             currentState.foodAmounts.forEach((amt, index) => {
                 const isActive = index === currentState.foodActiveIndex;
                 const borderClass = isActive ? 'border-custom-primary' : 'border-gray-200';
-                const bgClass = isActive ? 'bg-white' : 'bg-gray-100';
+                const bgClass = isActive ? 'bg-white shadow-sm' : 'bg-gray-100 opacity-70';
                 
-                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-24 flex-shrink-0 p-3 text-center rounded-lg border-2 ${borderClass} ${bgClass} font-bold text-gray-800 cursor-pointer outline-none" value="${amt}">`;
+                list.innerHTML += `<input type="text" readonly onclick="setActiveFoodIndex(${index})" class="food-input w-20 flex-shrink-0 p-2 text-center rounded-lg border-2 ${borderClass} ${bgClass} font-bold text-gray-800 cursor-pointer outline-none transition-all" value="${amt}">`;
                 
                 total += parseFloat(amt || 0);
             });
 
             document.getElementById('foodTotalDisplay').innerText = total.toFixed(2);
-            // Scroll to end automatically
             list.scrollLeft = list.scrollWidth;
         }
 
@@ -488,13 +533,11 @@
             if (key === 'DEL') {
                 currentState.foodAmounts[currentState.foodActiveIndex] = currentStr.slice(0, -1);
             } else if (key === 'NEXT') {
-                // If current is not empty, add new slot
                 if(currentStr !== '') {
                     currentState.foodAmounts.push('');
                     currentState.foodActiveIndex = currentState.foodAmounts.length - 1;
                 }
             } else {
-                // Check decimals limit
                 if (key === '.' && currentStr.includes('.')) return;
                 currentState.foodAmounts[currentState.foodActiveIndex] = currentStr + key;
             }
@@ -502,25 +545,15 @@
         }
 
         // ==========================================
-        // 📤 SUBMIT DATA & UPLOAD
+        // 📤 SUBMIT DATA
         // ==========================================
         async function submitData() {
-            if(API_URL === 'YOUR_GAS_WEB_APP_URL') {
-                alert("กรุณาใส่ URL ของ Google Apps Script ในโค้ดก่อนใช้งานจริง");
-                return;
-            }
-
             const category = document.getElementById('inputCategory').value;
-            let finalAmount = 0;
-
+            
             if(!category) return alert('กรุณาเลือกหมวดหมู่');
-
-            if(category === 'อาหาร') {
-                finalAmount = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
-                if(finalAmount <= 0) return alert('กรุณาใส่ยอดเงินอาหาร');
-            } else {
-                finalAmount = parseFloat(document.getElementById('inputAmount').value);
-                if(isNaN(finalAmount) || finalAmount <= 0) return alert('กรุณาใส่ยอดเงิน');
+            if(currentState.confirmedAmount <= 0) {
+                openAmountModal(); // เด้งให้กรอกถ้าลืม
+                return;
             }
 
             const fileInput = document.getElementById('inputFile');
@@ -540,7 +573,7 @@
                 type: currentState.type,
                 paymentMethod: currentState.type === 'Expense' ? document.getElementById('inputPayment').value : '-',
                 category: category,
-                amount: finalAmount,
+                amount: currentState.confirmedAmount, // ใช้ยอดที่ยืนยันแล้ว
                 note: document.getElementById('inputNote').value,
                 imageBase64: base64File,
                 imageName: fileName
@@ -554,8 +587,10 @@
                 const data = await res.json();
                 
                 if(data.status === 'success') {
-                    alert('บันทึกสำเร็จ!');
+                    // ไม่ใช้ Alert กวนใจ แต่ใช้ Reset Form เลย
                     resetForm();
+                    // แจ้งเตือนสวยๆ ด้วยการสลับไป Dashboard หรือโชว์ Toast (เบื้องต้นใช้ alert ตามเดิมแต่ลดความน่ารำคาญ)
+                    alert('บันทึกสำเร็จ!'); 
                 } else {
                     alert('เกิดข้อผิดพลาด: ' + data.message);
                 }
@@ -567,9 +602,15 @@
         }
 
         function resetForm() {
+            document.getElementById('inputCategory').value = '';
             document.getElementById('inputAmount').value = '';
             document.getElementById('inputNote').value = '';
             document.getElementById('inputFile').value = '';
+            
+            // ซ่อนกล่องสรุปยอดและเคลียร์ค่า state
+            currentState.confirmedAmount = 0;
+            document.getElementById('amountSummaryContainer').classList.add('hidden');
+            
             currentState.foodAmounts = [''];
             currentState.foodActiveIndex = 0;
             renderFoodInputs();
@@ -579,7 +620,6 @@
         // 📊 DASHBOARD & SETTINGS
         // ==========================================
         async function loadDashboard() {
-            if(API_URL === 'YOUR_GAS_WEB_APP_URL') return;
             showLoader('กำลังดึงข้อมูล...');
             try {
                 const res = await fetch(API_URL, {
@@ -601,7 +641,6 @@
             const today = new Date();
             let filteredTx = [];
 
-            // Simple client-side filtering
             filteredTx = currentState.transactions.filter(tx => {
                 const txDate = new Date(tx.Date);
                 if(filter === 'daily') return txDate.toDateString() === today.toDateString();
@@ -622,9 +661,9 @@
                 }
             });
 
-            document.getElementById('dashIncome').innerText = `฿${income.toLocaleString()}`;
-            document.getElementById('dashExpense').innerText = `฿${expense.toLocaleString()}`;
-            document.getElementById('dashBalance').innerText = `฿${(income - expense).toLocaleString()}`;
+            document.getElementById('dashIncome').innerText = `฿${income.toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('dashExpense').innerText = `฿${expense.toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('dashBalance').innerText = `฿${(income - expense).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
             const catDiv = document.getElementById('dashCategories');
             catDiv.innerHTML = '';
@@ -672,7 +711,7 @@
                     body: JSON.stringify({ action: 'saveCategory', payload: { name, type } })
                 });
                 document.getElementById('newCatName').value = '';
-                await fetchCategories(); // Refresh list
+                await fetchCategories();
             } catch (e) { console.error(e); }
             finally { hideLoader(); }
         }
@@ -695,7 +734,6 @@
 
         // Initial Boot
         fetchCategories();
-        // Initialize Icons again just in case dynamic content needs it
         lucide.createIcons();
 
     </script>
