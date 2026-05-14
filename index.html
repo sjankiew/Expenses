@@ -448,7 +448,14 @@
         function checkCategory() {
             const cat = document.getElementById('inputCategory').value;
             if(!cat) return;
-            openAmountModal();
+            
+            // นำ focus ออกจาก Dropdown เพื่อให้ UI ของมือถือปิดตัวลงอย่างสมบูรณ์
+            document.getElementById('inputCategory').blur();
+            
+            // หน่วงเวลาเล็กน้อย (150ms) ก่อนเรียก Popup เพื่อลดอาการกระพริบชนกัน
+            setTimeout(() => {
+                openAmountModal();
+            }, 150);
         }
 
         function openAmountModal() {
