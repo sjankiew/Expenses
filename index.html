@@ -255,7 +255,7 @@
             </button>
         </div>
 
-        <!-- 📱 Floating Action Button (FAB) สำหรับเปิดหน้าบันทึกด่วนบนมือถือ (แก้ไขปุ่มบวกหาย) -->
+        <!-- 📱 Floating Action Button (FAB) สำหรับเปิดหน้าบันทึกด่วนบนมือถือ -->
         <button id="mobile-fab" onclick="navigate('record')" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-custom-primary text-white rounded-full flex items-center justify-center shadow-lg z-40 hover:bg-[#58b6bc] active:scale-95 transition-all">
             <i data-lucide="plus" class="w-8 h-8"></i>
         </button>
@@ -354,7 +354,7 @@
         };
 
         // 💡 ปรับปรุงกลไก API ป้องกันบั๊ก CORS Preflight สมบูรณ์ 100%
-        async function callAPI(action, payload = {}) {
+        async function callAPI(action, data = {}) {
             try {
                 // 🚀 สำหรับการดึงข้อมูล (Read): เปลี่ยนไปใช้ "GET" โดยตรง เพื่อเลี่ยงการเกิด OPTIONS Preflight และ CORS บล็อกโดยสมบูรณ์
                 if (action === 'getCategories' || action === 'getTransactions') {
@@ -362,14 +362,14 @@
                     const response = await fetch(url);
                     return await response.json();
                 } else {
-                    // 📤 สำหรับการส่งข้อมูล (Write): ใช้ POST ร่วมกับ header แบบเรียบง่าย (Simple Header) ป้องกันบล็อก CORS
+                    // 📤 สำหรับการส่งข้อมูล (Write): ใช้ POST ร่วมกับ header แบบ text/plain ป้องกันบล็อก CORS
                     const url = `${API_URL}?action=${action}`;
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'text/plain;charset=utf-8'
                         },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(data)
                     });
                     return await response.json();
                 }
@@ -672,7 +672,7 @@
                     const shortDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
 
                     // มีลิงก์แนบสลิป Google Drive
-                    const receiptIcon = tx.receiptLink && tx.receiptLink !== '-' ? `
+                    const receiptIcon = tx.receiptLink && tx.receiptLink !== '-' && !tx.receiptLink.startsWith('Upload Error') ? `
                         <a href="${tx.receiptLink}" target="_blank" class="p-1 text-custom-primary hover:bg-[#E5EEE4] rounded ml-2 inline-flex items-center" title="ดูสลิปใบเสร็จ">
                             <i data-lucide="image" class="w-4 h-4"></i>
                         </a>
