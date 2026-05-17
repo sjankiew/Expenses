@@ -230,7 +230,7 @@
                 </div>
             </section>
 
-            <!-- 🟢 โหมด: จัดการหมวดหมู่ และเครื่องมือตรวจสอบ (Settings & Diagnostic View) -->
+            <!-- 🟢 โหมด: จัดการหมวดหมู่ (Settings View) -->
             <section id="view-settings" class="view-section max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">จัดการหมวดหมู่</h2>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -245,35 +245,24 @@
                 </div>
                 
                 <ul id="settingCatList" class="space-y-2 font-sarabun mb-8"></ul>
-
-                <!-- 🛠️ ดึงดูดความสนใจ: แผงควบคุมตรวจสภาพเชื่อมต่อหลังบ้าน (Diagnostic Panel) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-6 font-sarabun">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                        <i data-lucide="shield-alert" class="text-yellow-500 mr-2"></i> ตัวช่วยตรวจสอบการเชื่อมต่อ Google Sheets
-                    </h3>
-                    <p class="text-xs text-gray-500 mb-4">
-                        คุณสามารถกดปุ่มทดสอบด้านล่างเพื่อทำการตรวจสอบการทำงานของ Google Apps Script Web App ว่ารับ-ส่งข้อมูลกับระบบได้ถูกต้องจริงหรือไม่
-                    </p>
-                    <button onclick="runDiagnosticTest()" id="btnDiagnostic" class="w-full sm:w-auto bg-gray-800 text-white font-bold py-3 px-6 rounded-xl shadow hover:bg-gray-700 flex justify-center items-center transition-colors">
-                        <i data-lucide="play" class="w-4 h-4 mr-2"></i> เริ่มต้นกดทดสอบเชื่อมต่อจริง
-                    </button>
-                    <div id="diagnosticOutput" class="mt-4 p-4 rounded-xl text-sm hidden bg-gray-50 border border-gray-200 font-mono overflow-x-auto max-h-48">
-                        กำลังรอทดสอบ...
-                    </div>
-                </div>
             </section>
         </div>
 
-        <!-- Sticky Footer for Save button -->
+        <!-- Sticky Footer for Save button on Record Screen -->
         <div id="stickyFooter" class="absolute bottom-0 left-0 right-0 p-3 pb-6 bg-white/95 border-t z-30 shadow-lg">
             <button onclick="submitData()" class="w-full max-w-xs mx-auto block bg-custom-primary text-white py-3 rounded-full font-bold shadow-teal-500/30 flex justify-center items-center">
                 <i data-lucide="save" class="w-5 h-5 mr-2"></i> บันทึกข้อมูล
             </button>
         </div>
+
+        <!-- 📱 Floating Action Button (FAB) สำหรับเปิดหน้าบันทึกด่วนบนมือถือ (แก้ไขปุ่มบวกหาย) -->
+        <button id="mobile-fab" onclick="navigate('record')" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-custom-primary text-white rounded-full flex items-center justify-center shadow-lg z-40 hover:bg-[#58b6bc] active:scale-95 transition-all">
+            <i data-lucide="plus" class="w-8 h-8"></i>
+        </button>
     </main>
 
-    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (หลบแป้นพิมพ์มือถือด้วยการใช้ pt-8 และ items-start ยอดบนจอมือถือ) -->
-    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-8 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
+    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (หลบแป้นพิมพ์มือถือด้วยการใช้ pt-16 และ items-start ยอดบนจอมือถือ) -->
+    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-16 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl my-auto md:my-0">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800" id="modalTitle">ระบุยอดเงิน</h3>
@@ -334,18 +323,6 @@
         </div>
     </div>
 
-    <!-- Custom Alert / Toast Error Box -->
-    <div id="customAlert" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4 font-sarabun">
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-            <div class="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="alert-circle" class="w-6 h-6"></i>
-            </div>
-            <h4 class="text-lg font-bold mb-2">ข้อความระบบ</h4>
-            <p id="customAlertText" class="text-gray-600 text-sm mb-6">กรุณากรอกข้อมูลให้ครบถ้วน</p>
-            <button onclick="closeCustomAlert()" class="w-full py-2 bg-custom-primary text-white font-bold rounded-xl shadow">ตกลง</button>
-        </div>
-    </div>
-
     <!-- Toast UI element -->
     <div id="toast">
         <i data-lucide="check-circle" class="w-5 h-5 text-white"></i> 
@@ -373,39 +350,33 @@
             document.getElementById('inputDate').valueAsDate = new Date();
             fetchCategories();
             loadDashboard();
+            updateFABVisibility();
         };
 
-        // ฟังก์ชันส่ง API ไปยัง Apps Script ด้วย fetch หลีกเลี่ยงปัญหา CORS อย่างรัดกุม
+        // 💡 ปรับปรุงกลไก API ป้องกันบั๊ก CORS Preflight สมบูรณ์ 100%
         async function callAPI(action, payload = {}) {
-            const url = `${API_URL}?action=${action}`;
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
+                // 🚀 สำหรับการดึงข้อมูล (Read): เปลี่ยนไปใช้ "GET" โดยตรง เพื่อเลี่ยงการเกิด OPTIONS Preflight และ CORS บล็อกโดยสมบูรณ์
+                if (action === 'getCategories' || action === 'getTransactions') {
+                    const url = `${API_URL}?action=${action}&t=${Date.now()}`;
+                    const response = await fetch(url);
+                    return await response.json();
+                } else {
+                    // 📤 สำหรับการส่งข้อมูล (Write): ใช้ POST ร่วมกับ header แบบเรียบง่าย (Simple Header) ป้องกันบล็อก CORS
+                    const url = `${API_URL}?action=${action}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    return await response.json();
+                }
             } catch (error) {
                 console.error("API Call Error for " + action, error);
-                // Fallback แบบ GET หากเซิร์ฟเวอร์ตอบสนองแบบดึงข้อมูลอย่างเดียว
-                if (action === 'getCategories' || action === 'getTransactions') {
-                    const fallbackRes = await fetch(`${API_URL}?action=${action}`);
-                    return await fallbackRes.json();
-                }
                 throw error;
             }
-        }
-
-        // Custom alert utility function
-        function triggerAlert(message) {
-            document.getElementById('customAlertText').innerText = message;
-            document.getElementById('customAlert').classList.remove('hidden');
-        }
-
-        window.closeCustomAlert = function() {
-            document.getElementById('customAlert').classList.add('hidden');
         }
 
         // Sidebar drawer logic
@@ -423,6 +394,16 @@
             }
         };
 
+        // 📱 ควบคุมการแสดงผลของ FAB "+" บันทึกรายรับ-รายจ่ายด่วนบนมือถือ
+        function updateFABVisibility() {
+            const fab = document.getElementById('mobile-fab');
+            if (fab) {
+                // ซ่อน FAB เมื่ออยู่ในหน้า record และแสดงผลเมื่ออยู่ในแท็บอื่น
+                fab.style.display = currentState.view === 'record' ? 'none' : 'flex';
+            }
+        }
+
+        // Navigation control
         window.navigate = function(viewId) {
             currentState.view = viewId;
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -438,6 +419,7 @@
             
             document.getElementById('stickyFooter').style.transform = viewId === 'record' ? 'translateY(0)' : 'translateY(100%)';
             if(viewId === 'dashboard') loadDashboard();
+            updateFABVisibility();
         };
 
         window.setType = function(t) { 
@@ -478,7 +460,7 @@
             document.getElementById('inlineCatInput').value = '';
             
             try { 
-                const sameTypeCount = currentState.categories.filter(c => c.Type === currentState.type).length;
+                const sameTypeCount = currentState.categories.filter(c => (c.Type || '').toLowerCase() === currentState.type.toLowerCase()).length;
                 await callAPI('saveCategory', { Name: name, Type: currentState.type, Order: sameTypeCount });
                 await fetchCategories(); 
                 
@@ -486,7 +468,7 @@
                 setTimeout(() => openAmountModal(), 300);
             } catch(e) { 
                 console.error(e); 
-                triggerAlert('เกิดข้อผิดพลาดในการบันทึกฐานข้อมูลหมวดหมู่'); 
+                alert('เกิดข้อผิดพลาดในการบันทึกฐานข้อมูลหมวดหมู่'); 
             }
         };
 
@@ -513,7 +495,7 @@
             let total = 0;
             if(cat === 'อาหาร') total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
             else total = parseFloat(document.getElementById('inputAmount').value);
-            if(isNaN(total) || total <= 0) return triggerAlert('ยอดเงินไม่ถูกต้อง');
+            if(isNaN(total) || total <= 0) return alert('ยอดเงินไม่ถูกต้อง');
             currentState.confirmedAmount = total;
             document.getElementById('displayTotalAmount').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('amountSummaryContainer').classList.remove('hidden');
@@ -569,7 +551,7 @@
         // ==========================================
         window.submitData = async function() {
             const category = document.getElementById('inputCategory').value;
-            if(!category || currentState.confirmedAmount <= 0) return triggerAlert('กรุณาระบุข้อมูลให้ครบถ้วนก่อนบันทึก');
+            if(!category || currentState.confirmedAmount <= 0) return alert('กรุณาระบุข้อมูลให้ครบถ้วนก่อนบันทึก');
 
             showToast('กำลังบันทึกข้อมูล...'); 
             const fileInput = document.getElementById('inputFile');
@@ -618,11 +600,11 @@
                     localStorage.removeItem('dash_data_gas'); 
                     loadDashboard();
                 } else {
-                    triggerAlert('เกิดข้อผิดพลาดในการบันทึก: ' + response.message);
+                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + response.message);
                 }
             } catch (error) { 
                 console.error("Submit failed", error); 
-                triggerAlert('การส่งข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
+                alert('การส่งข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
             }
         };
 
@@ -725,7 +707,7 @@
                 const response = await callAPI('getCategories');
                 if(response && response.status === 'success') {
                     let cats = response.data;
-                    cats.sort((a,b) => a.Order - b.Order);
+                    cats.sort((a,b) => (a.Order || 0) - (b.Order || 0));
                     currentState.categories = cats;
                     populateCategories(); 
                     renderCategorySettings();
@@ -736,7 +718,9 @@
         function populateCategories() {
             const s = document.getElementById('inputCategory'); 
             s.innerHTML = '<option value="" disabled selected>-- เลือกหมวดหมู่ --</option>';
-            currentState.categories.filter(c => c.Type === currentState.type).forEach(c => { 
+            // ป้องกันปัญหาการตั้งชื่อพิมพ์เล็ก-ใหญ่ใน Google Sheet
+            const filtered = currentState.categories.filter(c => (c.Type || '').toLowerCase() === currentState.type.toLowerCase());
+            filtered.forEach(c => { 
                 s.innerHTML += `<option value="${c.Name}">${c.Name}</option>`; 
             });
             s.innerHTML += `<option value="ADD_NEW" class="text-custom-primary font-bold">➕ เพิ่มหมวดหมู่ใหม่...</option>`;
@@ -744,19 +728,19 @@
 
         function renderCategorySettings() {
             const l = document.getElementById('settingCatList'); l.innerHTML = '';
-            const expenses = currentState.categories.filter(c => c.Type === 'Expense');
-            const incomes = currentState.categories.filter(c => c.Type === 'Income');
+            const expenses = currentState.categories.filter(c => (c.Type || '').toLowerCase() === 'expense');
+            const incomes = currentState.categories.filter(c => (c.Type || '').toLowerCase() === 'income');
             
             const renderList = (arr, title) => {
                 if(arr.length === 0) return;
                 l.innerHTML += `<div class="text-sm font-bold text-gray-500 mt-4 mb-2">${title}</div>`;
                 arr.forEach((c, index) => {
-                    const badge = c.Type === 'Income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    const badge = (c.Type || '').toLowerCase() === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
                     l.innerHTML += `
                         <li class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm font-sarabun">
                             <span class="font-medium flex-1">${c.Name}</span>
                             <div class="flex items-center space-x-2">
-                                <span class="text-xs font-bold px-2 py-1 rounded-md ${badge} mr-2">${c.Type === 'Income' ? 'รายรับ' : 'รายจ่าย'}</span>
+                                <span class="text-xs font-bold px-2 py-1 rounded-md ${badge} mr-2">${(c.Type || '').toLowerCase() === 'income' ? 'รายรับ' : 'รายจ่าย'}</span>
                                 <button onclick="moveCat('${c.id}', -1)" class="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg disabled:opacity-30" ${index === 0 ? 'disabled' : ''}><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
                                 <button onclick="moveCat('${c.id}', 1)" class="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg disabled:opacity-30" ${index === arr.length - 1 ? 'disabled' : ''}><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
                             </div>
@@ -773,7 +757,7 @@
             const name = document.getElementById('newCatName').value, type = document.getElementById('newCatType').value;
             if(!name) return;
             try { 
-                const sameTypeCount = currentState.categories.filter(c => c.Type === type).length;
+                const sameTypeCount = currentState.categories.filter(c => (c.Type || '').toLowerCase() === type.toLowerCase()).length;
                 await callAPI('saveCategory', { Name: name, Type: type, Order: sameTypeCount });
                 document.getElementById('newCatName').value = ''; 
                 await fetchCategories(); 
@@ -784,8 +768,8 @@
             let catToMove = currentState.categories.find(c => c.id == id);
             if(!catToMove) return;
 
-            let sameTypeCats = currentState.categories.filter(c => c.Type === catToMove.Type);
-            sameTypeCats.sort((a,b) => a.Order - b.Order);
+            let sameTypeCats = currentState.categories.filter(c => (c.Type || '').toLowerCase() === (catToMove.Type || '').toLowerCase());
+            sameTypeCats.sort((a,b) => (a.Order || 0) - (b.Order || 0));
 
             let currentIndex = sameTypeCats.findIndex(c => c.id == id);
             let targetIndex = currentIndex + direction;
@@ -798,7 +782,7 @@
             catToMove.Order = targetCat.Order;
             targetCat.Order = tempOrder;
 
-            currentState.categories.sort((a,b) => a.Order - b.Order);
+            currentState.categories.sort((a,b) => (a.Order || 0) - (b.Order || 0));
             populateCategories(); 
             renderCategorySettings();
 
@@ -809,68 +793,6 @@
                 });
             } catch(e) { 
                 console.error("Reorder failed in Google Sheets", e); 
-            }
-        };
-
-        // ==========================================
-        // 🧪 SYSTEM DIAGNOSTIC TOOL
-        // ==========================================
-        window.runDiagnosticTest = async function() {
-            const output = document.getElementById('diagnosticOutput');
-            const btn = document.getElementById('btnDiagnostic');
-            
-            output.classList.remove('hidden');
-            output.innerHTML = "=== กำลังเริ่มการตรวจสอบระบบ... ===\n";
-            output.innerHTML += `📡 ยิงทดสอบไปยัง: ${API_URL}\n\n`;
-            
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-pulse">正在测试 Running...</span>`;
-            
-            try {
-                // ขั้นตอนที่ 1: ยิง GET ดึงหมวดหมู่
-                output.innerHTML += "⏳ 1. กำลังเรียกข้อมูลหมวดหมู่ (getCategories)... ";
-                const resCat = await fetch(`${API_URL}?action=getCategories`, { method: 'GET' });
-                
-                if (!resCat.ok) {
-                    throw new Error(`HTTP Error Status: ${resCat.status}`);
-                }
-                
-                const dataCat = await resCat.json();
-                output.innerHTML += `<span class="text-green-500 font-bold">สำเร็จ (OK)</span>\n`;
-                output.innerHTML += `   └─ ข้อมูลตอบรับ: ${dataCat.status}\n`;
-                output.innerHTML += `   └─ จำนวนหมวดหมู่ที่พบ: ${dataCat.data ? dataCat.data.length : 0} รายการ\n\n`;
-                
-                // ขั้นตอนที่ 2: ยิง GET ดึงรายการธุรกรรม
-                output.innerHTML += "⏳ 2. กำลังเรียกประวัติธุรกรรม (getTransactions)... ";
-                const resTx = await fetch(`${API_URL}?action=getTransactions`, { method: 'GET' });
-                const dataTx = await resTx.json();
-                output.innerHTML += `<span class="text-green-500 font-bold">สำเร็จ (OK)</span>\n`;
-                output.innerHTML += `   └─ ข้อมูลตอบรับ: ${dataTx.status}\n`;
-                output.innerHTML += `   └─ รายการล่าสุดจำนวน: ${dataTx.data ? dataTx.data.length : 0} ธุรกรรม\n\n`;
-                
-                output.innerHTML += `<span class="bg-green-100 text-green-800 p-1 rounded font-bold">🎉 ผลทดสอบ: การเชื่อมต่อสมบูรณ์ 100%!</span>\n`;
-                output.innerHTML += "หลังบ้าน Apps Script และหน้าบ้านคุยกันได้ปกติไม่มีติดปัญหา CORS ครับ";
-                
-                // พยายามอัปเดตหน้าแสดงผลหลักให้ตรง
-                if (dataCat.status === 'success') {
-                    let cats = dataCat.data;
-                    cats.sort((a,b) => a.Order - b.Order);
-                    currentState.categories = cats;
-                    populateCategories(); 
-                    renderCategorySettings();
-                }
-                
-            } catch (err) {
-                output.innerHTML += `<span class="text-red-500 font-bold">ล้มเหลว (FAILED)</span>\n`;
-                output.innerHTML += `🛑 สาเหตุของข้อผิดพลาด: ${err.message}\n\n`;
-                output.innerHTML += `<span class="bg-red-100 text-red-800 p-1 rounded font-bold">💡 คำแนะนำในการแก้ไข:</span>\n`;
-                output.innerHTML += "1. ตรวจสอบว่าได้แก้ไขสิทธิ์ Web App ใน Apps Script เป็น 'ทุกคน (Anyone)' หรือยัง?\n";
-                output.innerHTML += "2. ตรวจสอบให้แน่ใจว่าคลิก 'Deploy > New Deployment' หลังแก้ไขสคริปต์แล้วนำลิงก์ล่าสุดมาใส่ที่ API_URL\n";
-                output.innerHTML += "3. เปิด Developer Console ของเบราว์เซอร์ (F12) เพื่อดูข้อผิดพลาดของเครือข่ายโดยละเอียด\n";
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 mr-2"></i> เริ่มต้นกดทดสอบเชื่อมต่อจริง`;
-                lucide.createIcons();
             }
         };
     </script>
