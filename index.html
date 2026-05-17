@@ -331,51 +331,51 @@
 
     <script>
         // ==========================================
-        // ⚙️ CONFIG: เชื่อมต่อ Web App ของ Apps Script
+        // 🌐 WEB APP URL (Google Apps Script)
         // ==========================================
         const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec';
 
         let currentState = {
-            view: 'record', 
-            type: 'Expense', 
-            categories: [], 
-            foodAmounts: [''], 
-            foodActiveIndex: 0, 
-            transactions: [], 
-            confirmedAmount: 0
+            view: 'record', type: 'Expense', categories: [], foodAmounts: [''], foodActiveIndex: 0, transactions: [], confirmedAmount: 0
         };
 
         window.onload = function() {
             lucide.createIcons();
             document.getElementById('inputDate').valueAsDate = new Date();
+            
+            // ⚡ โหลดหมวดหมู่จาก Cache ในเครื่องขึ้นมาทันที ไม่ต้องรอดาวน์โหลดจาก Google Sheets
+            const cachedCategories = localStorage.getItem('categories_cache');
+            if (cachedCategories) {
+                try {
+                    currentState.categories = JSON.parse(cachedCategories);
+                    populateCategories();
+                    renderCategorySettings();
+                } catch (e) {
+                    console.error("Error parsing cached categories", e);
+                }
+            }
+            
+            // ซิงค์ข้อมูลล่าสุดจาก Google Sheets หลังบ้านเพื่ออัปเดต Cache แบบเงียบ ๆ
             fetchCategories();
             loadDashboard();
-            updateFABVisibility();
         };
 
-        // 💡 ปรับปรุงกลไก API ป้องกันบั๊ก CORS Preflight สมบูรณ์ 100%
+        // ส่ง Request ไปยัง Google Apps Script (ย้ายผ่าน fetch ด้วย JSONP / POST เสริม)
         async function callAPI(action, data = {}) {
             try {
-                // 🚀 สำหรับการดึงข้อมูล (Read): เปลี่ยนไปใช้ "GET" โดยตรง เพื่อเลี่ยงการเกิด OPTIONS Preflight และ CORS บล็อกโดยสมบูรณ์
+                const response = await fetch(`${API_URL}?action=${action}`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                return await response.json();
+            } catch (e) {
+                console.error("API Call failed for " + action, e);
+                // Fallback สำหรับกรณีเจอปัญหา CORS Preflight บน Web App (สามารถเรียกผ่าน GET แบบอ้อมได้)
                 if (action === 'getCategories' || action === 'getTransactions') {
-                    const url = `${API_URL}?action=${action}&t=${Date.now()}`;
-                    const response = await fetch(url);
-                    return await response.json();
-                } else {
-                    // 📤 สำหรับการส่งข้อมูล (Write): ใช้ POST ร่วมกับ header แบบ text/plain ป้องกันบล็อก CORS
-                    const url = `${API_URL}?action=${action}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    return await response.json();
+                    const res = await fetch(`${API_URL}?action=${action}`);
+                    return await res.json();
                 }
-            } catch (error) {
-                console.error("API Call Error for " + action, error);
-                throw error;
+                throw e;
             }
         }
 
@@ -709,6 +709,10 @@
                     let cats = response.data;
                     cats.sort((a,b) => (a.Order || 0) - (b.Order || 0));
                     currentState.categories = cats;
+                    
+                    // บันทึกข้อมูลล่าสุดลง Cache ทันทีเมื่อดาวน์โหลดเสร็จ
+                    localStorage.setItem('categories_cache', JSON.stringify(cats));
+                    
                     populateCategories(); 
                     renderCategorySettings();
                 }
@@ -718,9 +722,7 @@
         function populateCategories() {
             const s = document.getElementById('inputCategory'); 
             s.innerHTML = '<option value="" disabled selected>-- เลือกหมวดหมู่ --</option>';
-            // ป้องกันปัญหาการตั้งชื่อพิมพ์เล็ก-ใหญ่ใน Google Sheet
-            const filtered = currentState.categories.filter(c => (c.Type || '').toLowerCase() === currentState.type.toLowerCase());
-            filtered.forEach(c => { 
+            currentState.categories.filter(c => c.Type === currentState.type).forEach(c => { 
                 s.innerHTML += `<option value="${c.Name}">${c.Name}</option>`; 
             });
             s.innerHTML += `<option value="ADD_NEW" class="text-custom-primary font-bold">➕ เพิ่มหมวดหมู่ใหม่...</option>`;
@@ -768,8 +770,8 @@
             let catToMove = currentState.categories.find(c => c.id == id);
             if(!catToMove) return;
 
-            let sameTypeCats = currentState.categories.filter(c => (c.Type || '').toLowerCase() === (catToMove.Type || '').toLowerCase());
-            sameTypeCats.sort((a,b) => (a.Order || 0) - (b.Order || 0));
+            let sameTypeCats = currentState.categories.filter(c => c.Type === catToMove.Type);
+            sameTypeCats.sort((a,b) => a.Order - b.Order);
 
             let currentIndex = sameTypeCats.findIndex(c => c.id == id);
             let targetIndex = currentIndex + direction;
@@ -778,11 +780,14 @@
 
             let targetCat = sameTypeCats[targetIndex];
 
+            // Swap ลำดับ Order
             let tempOrder = catToMove.Order;
             catToMove.Order = targetCat.Order;
             targetCat.Order = tempOrder;
 
-            currentState.categories.sort((a,b) => (a.Order || 0) - (b.Order || 0));
+            // Update UI และ Cache ในเครื่องด่วนทันทีเพื่อให้ทำงานได้ลื่นไหล ไม่สะดุด
+            currentState.categories.sort((a,b) => a.Order - b.Order);
+            localStorage.setItem('categories_cache', JSON.stringify(currentState.categories));
             populateCategories(); 
             renderCategorySettings();
 
