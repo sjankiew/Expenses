@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Enterprise Expense Tracker (Google Apps Script)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -230,20 +230,37 @@
                 </div>
             </section>
 
-            <!-- 🟢 โหมด: จัดการหมวดหมู่ (Settings View) -->
+            <!-- 🟢 โหมด: จัดการหมวดหมู่ และเครื่องมือตรวจสอบ (Settings & Diagnostic View) -->
             <section id="view-settings" class="view-section max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">จัดการหมวดหมู่</h2>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <div class="flex flex-col sm:flex-row gap-3 font-sarabun">
-                        <select id="newCatType" class="custom-select p-3 bg-gray-50 border border-gray-200 rounded-xl sm:w-1/3">
+                        <select id="newCatType" class="custom-select p-3 bg-gray-50 border border-gray-200 rounded-xl sm:w-1/3 w-full">
                             <option value="Expense">รายจ่าย</option>
                             <option value="Income">รายรับ</option>
                         </select>
                         <input type="text" id="newCatName" placeholder="ชื่อหมวดหมู่ใหม่..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary w-full">
-                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#58b6bc] transition-colors sm:w-auto">เพิ่ม</button>
+                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#58b6bc] transition-colors w-full sm:w-auto">เพิ่ม</button>
                     </div>
                 </div>
-                <ul id="settingCatList" class="space-y-2 font-sarabun"></ul>
+                
+                <ul id="settingCatList" class="space-y-2 font-sarabun mb-8"></ul>
+
+                <!-- 🛠️ ดึงดูดความสนใจ: แผงควบคุมตรวจสภาพเชื่อมต่อหลังบ้าน (Diagnostic Panel) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-6 font-sarabun">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                        <i data-lucide="shield-alert" class="text-yellow-500 mr-2"></i> ตัวช่วยตรวจสอบการเชื่อมต่อ Google Sheets
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-4">
+                        คุณสามารถกดปุ่มทดสอบด้านล่างเพื่อทำการตรวจสอบการทำงานของ Google Apps Script Web App ว่ารับ-ส่งข้อมูลกับระบบได้ถูกต้องจริงหรือไม่
+                    </p>
+                    <button onclick="runDiagnosticTest()" id="btnDiagnostic" class="w-full sm:w-auto bg-gray-800 text-white font-bold py-3 px-6 rounded-xl shadow hover:bg-gray-700 flex justify-center items-center transition-colors">
+                        <i data-lucide="play" class="w-4 h-4 mr-2"></i> เริ่มต้นกดทดสอบเชื่อมต่อจริง
+                    </button>
+                    <div id="diagnosticOutput" class="mt-4 p-4 rounded-xl text-sm hidden bg-gray-50 border border-gray-200 font-mono overflow-x-auto max-h-48">
+                        กำลังรอทดสอบ...
+                    </div>
+                </div>
             </section>
         </div>
 
@@ -255,8 +272,8 @@
         </div>
     </main>
 
-    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (หลบแป้นพิมพ์บนมือถือโดยชิดขอบบน) -->
-    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-16 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
+    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (หลบแป้นพิมพ์มือถือด้วยการใช้ pt-8 และ items-start ยอดบนจอมือถือ) -->
+    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-8 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl my-auto md:my-0">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800" id="modalTitle">ระบุยอดเงิน</h3>
@@ -265,9 +282,9 @@
                 </button>
             </div>
             
-            <!-- Standard numeric input -->
-            <div id="modalStandardAmount" class="hidden py-4">
-                <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-4xl font-bold text-center focus:outline-none text-gray-800">
+            <!-- Standard numeric input for non-food -->
+            <div id="modalStandardAmount" class="hidden py-2">
+                <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-4xl font-bold text-center focus:outline-none text-gray-800 focus:border-custom-primary">
             </div>
 
             <!-- Food multi-input split calculator -->
@@ -297,7 +314,8 @@
                 </div>
             </div>
 
-            <div class="flex space-x-3 mt-6">
+            <!-- ปุ่มกดตกลงและยกเลิก -->
+            <div class="flex space-x-3 mt-4">
                 <button onclick="closeAmountModal()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-600">ยกเลิก</button>
                 <button onclick="confirmAmount()" class="flex-1 py-3 bg-custom-primary text-white rounded-xl font-bold shadow-lg">ตกลง</button>
             </div>
@@ -313,6 +331,18 @@
                 <button onclick="closeInlineCatModal()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-600">ยกเลิก</button>
                 <button onclick="saveInlineCategory()" class="flex-1 py-3 bg-custom-primary text-white rounded-xl font-bold shadow-lg">บันทึก</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert / Toast Error Box -->
+    <div id="customAlert" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4 font-sarabun">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-circle" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-lg font-bold mb-2">ข้อความระบบ</h4>
+            <p id="customAlertText" class="text-gray-600 text-sm mb-6">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+            <button onclick="closeCustomAlert()" class="w-full py-2 bg-custom-primary text-white font-bold rounded-xl shadow">ตกลง</button>
         </div>
     </div>
 
@@ -345,21 +375,21 @@
             loadDashboard();
         };
 
-        // ฟังก์ชันช่วยทำ REST Call ไปยัง GAS ป้องกันการติด CORS ด้วย Content-Type text/plain
+        // ฟังก์ชันส่ง API ไปยัง Apps Script ด้วย fetch หลีกเลี่ยงปัญหา CORS อย่างรัดกุม
         async function callAPI(action, payload = {}) {
             const url = `${API_URL}?action=${action}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'text/plain'
+                        'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify(payload)
                 });
                 return await response.json();
             } catch (error) {
                 console.error("API Call Error for " + action, error);
-                // Fallback แบบ GET สำหรับ Action ดึงข้อมูล
+                // Fallback แบบ GET หากเซิร์ฟเวอร์ตอบสนองแบบดึงข้อมูลอย่างเดียว
                 if (action === 'getCategories' || action === 'getTransactions') {
                     const fallbackRes = await fetch(`${API_URL}?action=${action}`);
                     return await fallbackRes.json();
@@ -368,7 +398,17 @@
             }
         }
 
-        // Sidebar logic
+        // Custom alert utility function
+        function triggerAlert(message) {
+            document.getElementById('customAlertText').innerText = message;
+            document.getElementById('customAlert').classList.remove('hidden');
+        }
+
+        window.closeCustomAlert = function() {
+            document.getElementById('customAlert').classList.add('hidden');
+        }
+
+        // Sidebar drawer logic
         window.toggleMobileMenu = function() {
             const overlay = document.getElementById('mobile-menu-overlay');
             const drawer = document.getElementById('mobile-menu-drawer');
@@ -444,7 +484,10 @@
                 
                 document.getElementById('inputCategory').value = name;
                 setTimeout(() => openAmountModal(), 300);
-            } catch(e) { console.error(e); alert('เกิดข้อผิดพลาดในการบันทึกฐานข้อมูล'); }
+            } catch(e) { 
+                console.error(e); 
+                triggerAlert('เกิดข้อผิดพลาดในการบันทึกฐานข้อมูลหมวดหมู่'); 
+            }
         };
 
         window.openAmountModal = function() {
@@ -470,7 +513,7 @@
             let total = 0;
             if(cat === 'อาหาร') total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
             else total = parseFloat(document.getElementById('inputAmount').value);
-            if(isNaN(total) || total <= 0) return alert('ยอดเงินไม่ถูกต้อง');
+            if(isNaN(total) || total <= 0) return triggerAlert('ยอดเงินไม่ถูกต้อง');
             currentState.confirmedAmount = total;
             document.getElementById('displayTotalAmount').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('amountSummaryContainer').classList.remove('hidden');
@@ -526,9 +569,9 @@
         // ==========================================
         window.submitData = async function() {
             const category = document.getElementById('inputCategory').value;
-            if(!category || currentState.confirmedAmount <= 0) return alert('กรุณาระบุข้อมูลให้ครบ');
+            if(!category || currentState.confirmedAmount <= 0) return triggerAlert('กรุณาระบุข้อมูลให้ครบถ้วนก่อนบันทึก');
 
-            showToast('บันทึกสำเร็จ!'); 
+            showToast('กำลังบันทึกข้อมูล...'); 
             const fileInput = document.getElementById('inputFile');
             const note = document.getElementById('inputNote').value || '-';
             const date = document.getElementById('inputDate').value;
@@ -538,10 +581,15 @@
             const foodArr = [...currentState.foodAmounts];
             const finalTotalAmt = currentState.confirmedAmount;
 
-            document.getElementById('inputCategory').value = ''; document.getElementById('inputAmount').value = '';
-            document.getElementById('inputNote').value = ''; document.getElementById('inputFile').value = '';
-            currentState.confirmedAmount = 0; document.getElementById('amountSummaryContainer').classList.add('hidden');
-            currentState.foodAmounts = ['']; currentState.foodActiveIndex = 0;
+            // เคลียร์ค่าหน้าร้านทันทีเพื่อ UX ที่ลื่นไหล (Optimistic UI)
+            document.getElementById('inputCategory').value = ''; 
+            document.getElementById('inputAmount').value = '';
+            document.getElementById('inputNote').value = ''; 
+            document.getElementById('inputFile').value = '';
+            currentState.confirmedAmount = 0; 
+            document.getElementById('amountSummaryContainer').classList.add('hidden');
+            currentState.foodAmounts = ['']; 
+            currentState.foodActiveIndex = 0;
 
             try {
                 let base64Data = "";
@@ -570,11 +618,11 @@
                     localStorage.removeItem('dash_data_gas'); 
                     loadDashboard();
                 } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + response.message);
+                    triggerAlert('เกิดข้อผิดพลาดในการบันทึก: ' + response.message);
                 }
             } catch (error) { 
                 console.error("Submit failed", error); 
-                alert('การส่งข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
+                triggerAlert('การส่งข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
             }
         };
 
@@ -641,6 +689,13 @@
                     const d = new Date(tx.date);
                     const shortDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
 
+                    // มีลิงก์แนบสลิป Google Drive
+                    const receiptIcon = tx.receiptLink && tx.receiptLink !== '-' ? `
+                        <a href="${tx.receiptLink}" target="_blank" class="p-1 text-custom-primary hover:bg-[#E5EEE4] rounded ml-2 inline-flex items-center" title="ดูสลิปใบเสร็จ">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                        </a>
+                    ` : '';
+
                     txListDiv.innerHTML += `
                         <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                             <div class="flex items-center space-x-3">
@@ -648,7 +703,7 @@
                                     <i data-lucide="${icon}" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="font-bold text-gray-800">${tx.category}</div>
+                                    <div class="font-bold text-gray-800 flex items-center">${tx.category} ${receiptIcon}</div>
                                     <div class="text-xs text-gray-400">${shortDate} ${tx.note && tx.note !== '-' ? '• ' + tx.note : ''}</div>
                                 </div>
                             </div>
@@ -754,6 +809,68 @@
                 });
             } catch(e) { 
                 console.error("Reorder failed in Google Sheets", e); 
+            }
+        };
+
+        // ==========================================
+        // 🧪 SYSTEM DIAGNOSTIC TOOL
+        // ==========================================
+        window.runDiagnosticTest = async function() {
+            const output = document.getElementById('diagnosticOutput');
+            const btn = document.getElementById('btnDiagnostic');
+            
+            output.classList.remove('hidden');
+            output.innerHTML = "=== กำลังเริ่มการตรวจสอบระบบ... ===\n";
+            output.innerHTML += `📡 ยิงทดสอบไปยัง: ${API_URL}\n\n`;
+            
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">正在测试 Running...</span>`;
+            
+            try {
+                // ขั้นตอนที่ 1: ยิง GET ดึงหมวดหมู่
+                output.innerHTML += "⏳ 1. กำลังเรียกข้อมูลหมวดหมู่ (getCategories)... ";
+                const resCat = await fetch(`${API_URL}?action=getCategories`, { method: 'GET' });
+                
+                if (!resCat.ok) {
+                    throw new Error(`HTTP Error Status: ${resCat.status}`);
+                }
+                
+                const dataCat = await resCat.json();
+                output.innerHTML += `<span class="text-green-500 font-bold">สำเร็จ (OK)</span>\n`;
+                output.innerHTML += `   └─ ข้อมูลตอบรับ: ${dataCat.status}\n`;
+                output.innerHTML += `   └─ จำนวนหมวดหมู่ที่พบ: ${dataCat.data ? dataCat.data.length : 0} รายการ\n\n`;
+                
+                // ขั้นตอนที่ 2: ยิง GET ดึงรายการธุรกรรม
+                output.innerHTML += "⏳ 2. กำลังเรียกประวัติธุรกรรม (getTransactions)... ";
+                const resTx = await fetch(`${API_URL}?action=getTransactions`, { method: 'GET' });
+                const dataTx = await resTx.json();
+                output.innerHTML += `<span class="text-green-500 font-bold">สำเร็จ (OK)</span>\n`;
+                output.innerHTML += `   └─ ข้อมูลตอบรับ: ${dataTx.status}\n`;
+                output.innerHTML += `   └─ รายการล่าสุดจำนวน: ${dataTx.data ? dataTx.data.length : 0} ธุรกรรม\n\n`;
+                
+                output.innerHTML += `<span class="bg-green-100 text-green-800 p-1 rounded font-bold">🎉 ผลทดสอบ: การเชื่อมต่อสมบูรณ์ 100%!</span>\n`;
+                output.innerHTML += "หลังบ้าน Apps Script และหน้าบ้านคุยกันได้ปกติไม่มีติดปัญหา CORS ครับ";
+                
+                // พยายามอัปเดตหน้าแสดงผลหลักให้ตรง
+                if (dataCat.status === 'success') {
+                    let cats = dataCat.data;
+                    cats.sort((a,b) => a.Order - b.Order);
+                    currentState.categories = cats;
+                    populateCategories(); 
+                    renderCategorySettings();
+                }
+                
+            } catch (err) {
+                output.innerHTML += `<span class="text-red-500 font-bold">ล้มเหลว (FAILED)</span>\n`;
+                output.innerHTML += `🛑 สาเหตุของข้อผิดพลาด: ${err.message}\n\n`;
+                output.innerHTML += `<span class="bg-red-100 text-red-800 p-1 rounded font-bold">💡 คำแนะนำในการแก้ไข:</span>\n`;
+                output.innerHTML += "1. ตรวจสอบว่าได้แก้ไขสิทธิ์ Web App ใน Apps Script เป็น 'ทุกคน (Anyone)' หรือยัง?\n";
+                output.innerHTML += "2. ตรวจสอบให้แน่ใจว่าคลิก 'Deploy > New Deployment' หลังแก้ไขสคริปต์แล้วนำลิงก์ล่าสุดมาใส่ที่ API_URL\n";
+                output.innerHTML += "3. เปิด Developer Console ของเบราว์เซอร์ (F12) เพื่อดูข้อผิดพลาดของเครือข่ายโดยละเอียด\n";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 mr-2"></i> เริ่มต้นกดทดสอบเชื่อมต่อจริง`;
+                lucide.createIcons();
             }
         };
     </script>
