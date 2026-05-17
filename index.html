@@ -232,19 +232,20 @@
 
             <!-- 🟢 โหมด: จัดการหมวดหมู่ (Settings View) -->
             <section id="view-settings" class="view-section max-w-2xl mx-auto">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">จัดการหมวดหมู่</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 font-sarabun">จัดการหมวดหมู่</h2>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                    <!-- 💡 เปลี่ยน Layout เป็น Flex-col บนมือถือ (แก้ปัญหาล้นจอ) -->
                     <div class="flex flex-col sm:flex-row gap-3 font-sarabun">
-                        <select id="newCatType" class="custom-select p-3 bg-gray-50 border border-gray-200 rounded-xl sm:w-1/3 w-full">
+                        <select id="newCatType" class="custom-select p-3 bg-gray-50 border border-gray-200 rounded-xl sm:w-1/3">
                             <option value="Expense">รายจ่าย</option>
                             <option value="Income">รายรับ</option>
                         </select>
                         <input type="text" id="newCatName" placeholder="ชื่อหมวดหมู่ใหม่..." class="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus-ring-primary w-full">
-                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#58b6bc] transition-colors w-full sm:w-auto">เพิ่ม</button>
+                        <button onclick="saveCategory()" class="bg-custom-primary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#58b6bc] transition-colors sm:w-auto">เพิ่ม</button>
                     </div>
                 </div>
                 
-                <ul id="settingCatList" class="space-y-2 font-sarabun mb-8"></ul>
+                <ul id="settingCatList" class="space-y-2 font-sarabun"></ul>
             </section>
         </div>
 
@@ -261,8 +262,8 @@
         </button>
     </main>
 
-    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (หลบแป้นพิมพ์มือถือด้วยการใช้ pt-16 และ items-start ยอดบนจอมือถือ) -->
-    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-16 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
+    <!-- 🌟 Popup สำหรับกรอกยอดเงิน (ปรับให้อยู่ด้านบนบนจอมือถือ หลบแป้นพิมพ์ตัวเลข) -->
+    <div id="amountModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-start pt-16 md:pt-0 md:items-center justify-center p-4 transition-opacity font-sarabun overflow-y-auto">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl my-auto md:my-0">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800" id="modalTitle">ระบุยอดเงิน</h3>
@@ -272,7 +273,7 @@
             </div>
             
             <!-- Standard numeric input for non-food -->
-            <div id="modalStandardAmount" class="hidden py-2">
+            <div id="modalStandardAmount" class="hidden py-4">
                 <input type="number" id="inputAmount" placeholder="0.00" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-4xl font-bold text-center focus:outline-none text-gray-800 focus:border-custom-primary">
             </div>
 
@@ -304,7 +305,7 @@
             </div>
 
             <!-- ปุ่มกดตกลงและยกเลิก -->
-            <div class="flex space-x-3 mt-4">
+            <div class="flex space-x-3 mt-6">
                 <button onclick="closeAmountModal()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-600">ยกเลิก</button>
                 <button onclick="confirmAmount()" class="flex-1 py-3 bg-custom-primary text-white rounded-xl font-bold shadow-lg">ตกลง</button>
             </div>
@@ -336,32 +337,62 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbwxRRohEC8ygLsDs4nkm5yJHMZBl4OCxif-vqR6fEdqowoAk-z6iWNPY4HFdN5n0ZX5/exec';
 
         let currentState = {
-            view: 'record', type: 'Expense', categories: [], foodAmounts: [''], foodActiveIndex: 0, transactions: [], confirmedAmount: 0
+            view: 'record', 
+            type: 'Expense', 
+            categories: [], 
+            foodAmounts: [''], 
+            foodActiveIndex: 0, 
+            transactions: [], 
+            confirmedAmount: 0
         };
+
+        // หมวดหมู่สำรองเริ่มต้น เมื่อผู้ใช้เปิดใช้งานครั้งแรก (0-Second Instant UI fallback)
+        const defaultCats = [
+            { id: "default_1", Name: 'อาหาร', Type: 'Expense', Order: 0 },
+            { id: "default_2", Name: 'เดินทาง', Type: 'Expense', Order: 1 },
+            { id: "default_3", Name: 'ช้อปปิ้ง', Type: 'Expense', Order: 2 },
+            { id: "default_4", Name: 'เงินเดือน', Type: 'Income', Order: 0 },
+            { id: "default_5", Name: 'รายได้เสริม', Type: 'Income', Order: 1 }
+        ];
 
         window.onload = function() {
             lucide.createIcons();
             document.getElementById('inputDate').valueAsDate = new Date();
             
-            // ⚡ โหลดหมวดหมู่จาก Cache ในเครื่องขึ้นมาทันที ไม่ต้องรอดาวน์โหลดจาก Google Sheets
+            // ⚡ โหลดหมวดหมู่จาก Cache ในเครื่องขึ้นมาใช้งานก่อนทันที 0 วินาที
             const cachedCategories = localStorage.getItem('categories_cache');
             if (cachedCategories) {
                 try {
                     currentState.categories = JSON.parse(cachedCategories);
-                    populateCategories();
-                    renderCategorySettings();
                 } catch (e) {
-                    console.error("Error parsing cached categories", e);
+                    currentState.categories = defaultCats;
                 }
+            } else {
+                currentState.categories = defaultCats;
             }
             
-            // ซิงค์ข้อมูลล่าสุดจาก Google Sheets หลังบ้านเพื่ออัปเดต Cache แบบเงียบ ๆ
+            populateCategories();
+            renderCategorySettings();
+            updateFABVisibility();
+
+            // รันการซิงค์ข้อมูลกับฐานข้อมูลหลังบ้านแบบเงียบ ๆ (Silent Background Sync)
             fetchCategories();
             loadDashboard();
         };
 
-        // ส่ง Request ไปยัง Google Apps Script (ย้ายผ่าน fetch ด้วย JSONP / POST เสริม)
-        async function callAPI(action, data = {}) {
+        // 🟢 ดึงข้อมูลผ่านคำสั่งแบบ GET ป้องกันบล็อก CORS
+        async function getData(action) {
+            try {
+                const response = await fetch(`${API_URL}?action=${action}`);
+                return await response.json();
+            } catch (e) {
+                console.error("GET API Call failed for " + action, e);
+                throw e;
+            }
+        }
+
+        // 🔴 ส่งข้อมูลผ่านคำสั่งแบบ POST ยอมรับ Text/Plain เพื่อหลีกเลี่ยง Preflight Options
+        async function postData(action, data = {}) {
             try {
                 const response = await fetch(`${API_URL}?action=${action}`, {
                     method: 'POST',
@@ -369,12 +400,7 @@
                 });
                 return await response.json();
             } catch (e) {
-                console.error("API Call failed for " + action, e);
-                // Fallback สำหรับกรณีเจอปัญหา CORS Preflight บน Web App (สามารถเรียกผ่าน GET แบบอ้อมได้)
-                if (action === 'getCategories' || action === 'getTransactions') {
-                    const res = await fetch(`${API_URL}?action=${action}`);
-                    return await res.json();
-                }
+                console.error("POST API Call failed for " + action, e);
                 throw e;
             }
         }
@@ -394,11 +420,10 @@
             }
         };
 
-        // 📱 ควบคุมการแสดงผลของ FAB "+" บันทึกรายรับ-รายจ่ายด่วนบนมือถือ
+        // ควบคุมการแสดงผลของ FAB "+" บันทึกรายรับ-รายจ่ายด่วนบนมือถือ
         function updateFABVisibility() {
             const fab = document.getElementById('mobile-fab');
             if (fab) {
-                // ซ่อน FAB เมื่ออยู่ในหน้า record และแสดงผลเมื่ออยู่ในแท็บอื่น
                 fab.style.display = currentState.view === 'record' ? 'none' : 'flex';
             }
         }
@@ -461,14 +486,14 @@
             
             try { 
                 const sameTypeCount = currentState.categories.filter(c => (c.Type || '').toLowerCase() === currentState.type.toLowerCase()).length;
-                await callAPI('saveCategory', { Name: name, Type: currentState.type, Order: sameTypeCount });
+                await postData('saveCategory', { Name: name, Type: currentState.type, Order: sameTypeCount });
                 await fetchCategories(); 
                 
                 document.getElementById('inputCategory').value = name;
                 setTimeout(() => openAmountModal(), 300);
             } catch(e) { 
                 console.error(e); 
-                alert('เกิดข้อผิดพลาดในการบันทึกฐานข้อมูลหมวดหมู่'); 
+                showToast('❌ การเชื่อมต่อผิดพลาด');
             }
         };
 
@@ -495,7 +520,7 @@
             let total = 0;
             if(cat === 'อาหาร') total = currentState.foodAmounts.reduce((sum, val) => sum + parseFloat(val || 0), 0);
             else total = parseFloat(document.getElementById('inputAmount').value);
-            if(isNaN(total) || total <= 0) return alert('ยอดเงินไม่ถูกต้อง');
+            if(isNaN(total) || total <= 0) return showToast('❌ ยอดเงินไม่ถูกต้อง');
             currentState.confirmedAmount = total;
             document.getElementById('displayTotalAmount').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('amountSummaryContainer').classList.remove('hidden');
@@ -551,7 +576,7 @@
         // ==========================================
         window.submitData = async function() {
             const category = document.getElementById('inputCategory').value;
-            if(!category || currentState.confirmedAmount <= 0) return alert('กรุณาระบุข้อมูลให้ครบถ้วนก่อนบันทึก');
+            if(!category || currentState.confirmedAmount <= 0) return showToast('⚠️ ระบุข้อมูลให้ครบถ้วนก่อนบันทึก');
 
             showToast('กำลังบันทึกข้อมูล...'); 
             const fileInput = document.getElementById('inputFile');
@@ -563,7 +588,7 @@
             const foodArr = [...currentState.foodAmounts];
             const finalTotalAmt = currentState.confirmedAmount;
 
-            // เคลียร์ค่าหน้าร้านทันทีเพื่อ UX ที่ลื่นไหล (Optimistic UI)
+            // เคลียร์ฟอร์มทันทีเพื่อความเร็วของ UI (Optimistic UI)
             document.getElementById('inputCategory').value = ''; 
             document.getElementById('inputAmount').value = '';
             document.getElementById('inputNote').value = ''; 
@@ -594,17 +619,17 @@
                     fileName: fileName
                 };
 
-                const response = await callAPI('addTransaction', payload);
+                const response = await postData('addTransaction', payload);
                 if(response.status === 'success') {
-                    showToast('บันทึกสำเร็จลง Google Drive เรียบร้อย!');
+                    showToast('บันทึกข้อมูลเรียบร้อยแล้ว!');
                     localStorage.removeItem('dash_data_gas'); 
                     loadDashboard();
                 } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + response.message);
+                    showToast('❌ ' + response.message);
                 }
             } catch (error) { 
                 console.error("Submit failed", error); 
-                alert('การส่งข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
+                showToast('❌ ส่งข้อมูลขัดข้อง ลองใหม่อีกครั้ง');
             }
         };
 
@@ -616,7 +641,7 @@
             if (cached) { currentState.transactions = JSON.parse(cached); renderDashboard(true); }
 
             try {
-                const response = await callAPI('getTransactions');
+                const response = await getData('getTransactions');
                 if(response && response.status === 'success') {
                     let txs = response.data;
                     txs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -671,7 +696,7 @@
                     const d = new Date(tx.date);
                     const shortDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
 
-                    // มีลิงก์แนบสลิป Google Drive
+                    // แดงไอคอนหรือปุ่มเปิดสลิปใบเสร็จจาก Google Drive
                     const receiptIcon = tx.receiptLink && tx.receiptLink !== '-' && !tx.receiptLink.startsWith('Upload Error') ? `
                         <a href="${tx.receiptLink}" target="_blank" class="p-1 text-custom-primary hover:bg-[#E5EEE4] rounded ml-2 inline-flex items-center" title="ดูสลิปใบเสร็จ">
                             <i data-lucide="image" class="w-4 h-4"></i>
@@ -704,7 +729,7 @@
         // ==========================================
         async function fetchCategories() {
             try {
-                const response = await callAPI('getCategories');
+                const response = await getData('getCategories');
                 if(response && response.status === 'success') {
                     let cats = response.data;
                     cats.sort((a,b) => (a.Order || 0) - (b.Order || 0));
@@ -716,7 +741,9 @@
                     populateCategories(); 
                     renderCategorySettings();
                 }
-            } catch (e) { console.error("Fetch categories failed", e); }
+            } catch (e) { 
+                console.error("Fetch categories failed", e); 
+            }
         }
 
         function populateCategories() {
@@ -760,7 +787,7 @@
             if(!name) return;
             try { 
                 const sameTypeCount = currentState.categories.filter(c => (c.Type || '').toLowerCase() === type.toLowerCase()).length;
-                await callAPI('saveCategory', { Name: name, Type: type, Order: sameTypeCount });
+                await postData('saveCategory', { Name: name, Type: type, Order: sameTypeCount });
                 document.getElementById('newCatName').value = ''; 
                 await fetchCategories(); 
             } catch(e) { console.error("Error saving category", e); }
@@ -785,14 +812,14 @@
             catToMove.Order = targetCat.Order;
             targetCat.Order = tempOrder;
 
-            // Update UI และ Cache ในเครื่องด่วนทันทีเพื่อให้ทำงานได้ลื่นไหล ไม่สะดุด
+            // Update UI และ Cache ในเครื่องทันทีเพื่อให้ทำงานได้ลื่นไหล ไม่สะดุด
             currentState.categories.sort((a,b) => a.Order - b.Order);
             localStorage.setItem('categories_cache', JSON.stringify(currentState.categories));
             populateCategories(); 
             renderCategorySettings();
 
             try {
-                await callAPI('updateCategoryOrder', {
+                await postData('updateCategoryOrder', {
                     cat1: { id: catToMove.id, Order: catToMove.Order },
                     cat2: { id: targetCat.id, Order: targetCat.Order }
                 });
